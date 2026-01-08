@@ -6,169 +6,224 @@
 #include <Preferences.h>
 #endif
 
-// ===================================================
+#include <Arduino.h>
+#include <MicroTof.h>
+
 class MicroSetting
 {
-public:
 protected:
   const char *name_;
-  union Value
-  {
-    int32_t i;
-    float f;
-  };
-  Value min_;
-  Value max_exclusive_;
-  Value value_;
-  float stepf_;
-  char type_ = 'n'; // none
-  const char **labels_ = 0;
+  const char type_;
 
 public:
+  MicroSetting(const char *name, char type) : name_(name), type_(type) {}
+  // virtual ~MicroSettingBase() = default;
+
+  const char *getName() const { return name_; }
+  virtual void setFloat(float f) = 0;
+  virtual void setInt(int32_t i) = 0;
+  virtual float getFloat() = 0;
+  virtual int32_t getInt() = 0;
+  virtual void rotate(int amount) = 0;
+};
+
+class MicroSettingInt : public MicroSetting
+{
+private:
+  int32_t value_;
+  int32_t min_;
+  int32_t max_;
+
+public:
+  MicroSettingInt(const char *name, int32_t min, int32_t maxExclusive, int32_t initial)
+      : MicroSetting(name, 'i'), min_(min), max_(maxExclusive)
+  {
+    setInt(initial);
+  }
+
+  void setInt(int32_t i) override
+  {
+    value_ = MicroTof::clampExclusive(i, min_, max_);
+  }
+
+  void setFloat(float f) override
+  {
+    setInt((int32_t)floor(f));
+  }
+
+  void rotate(int amount) override
+  {
+    setInt(value_ + amount);
+  }
+
+  int32_t getInt() override { return value_; }
+
+  float getFloat() override { return (float)value_; }
+};
+
+class MicroSettingFloat : public MicroSetting
+{
+private:
+  float value_;
+  float min_;
+  float max_;
+  float step_;
+
+public:
+  MicroSettingFloat(const char *name, float min, float maxInclusive, float initial, float step)
+      : MicroSetting(name, 'f'), min_(min), max_(maxInclusive), step_(step)
+  {
+    setFloat(initial);
+  }
+
+  MicroSettingFloat(const char *name, float min, float maxInclusive, float initial)
+     : MicroSettingFloat(name, min, maxInclusive, initial, 0.1f) 
+  {
+  }
+
+  void setFloat(float f) override
+  {
+    value_ = MicroTof::clampInclusivef(f, min_, max_);
+  }
+
+  void setInt(int32_t i) override
+  {
+    setFloat((float)i);
+  }
+
+  void rotate(int amount) override
+  {
+    setFloat(value_ + step_ * amount);
+  }
+
+  float getFloat() override { return value_; }
+
+  int32_t getInt() override { return floor(value_); }
+};
+
+class MicroSettingEnum : public MicroSetting
+{
+private:
+  int32_t value_;
+  const char **labels_;
+  int32_t count_;
+
+public:
+  MicroSettingEnum(const char *name, const char **labels, int32_t count)
+      : MicroSetting(name, 'e'), labels_(labels), count_(count), value_(0) {}
+
+  void setInt(int32_t i) override
+  {
+    value_ = MicroTof::wrapExclusive(i, 0, count_);
+  }
+
+  void setFloat(float f) override
+  {
+    setInt((int32_t)floor(f));
+  }
+
+  void rotate(int amount) override
+  {
+    setInt(value_ + amount);
+  }
+
+  int32_t getInt() override { return value_; }
+
+  float getFloat() override { return (float)value_; }
+};
+
+class MicroSettingGroup
+{
+
+  size_t count_;
+  size_t current_;
+  const char *name_;
+  MicroSetting **settings_ = 0;
+  // MicroSetting::levels level_ = MicroSetting::KEY; //key or value
+
+public:
+
+  void rotateIndex(int amount)
+  {
+    current_ = MicroTof::wrapExclusive(current_ + amount, 0, count_);
+  }
+
+  MicroSetting * getCurrentSetting()
+  {
+    return settings_[current_];
+  }
+
+MicroSetting * getSettingAtIndex(int index) const {
+    return (index >= 0 && index < count_) ? settings_[index] : nullptr;
+}
+
+  void setIndex(int index)
+  {
+    current_ = MicroTof::clampExclusive(index, 0, count_);
+  }
+
+  int getIndex()
+  {
+    return current_;
+  }
+
   const char *getName()
   {
     return name_;
   }
 
-  const char *getLabel()
+  int getCount()
   {
-    if (labels_)
-      return labels_[value_.i];
-    return "";
+    return count_;
   }
-
-  void printValueTo(Print *printer)
-  {
-    switch (type_)
+  /*
+    void printEachTo(Print *printer, char *valueSeparator, char *settingSeparator)
     {
-    case 'e':
-      printer->print(labels_[value_.i]);
-      break;
-    case 'i':
-      printer->print(value_.i);
-      break;
-    case 'f':
-      printer->print(value_.f);
-      break;
+      for (int i = 0; i < count_; i++)
+      {
+        if (i && settingSeparator)
+          printer->print(settingSeparator);
+
+        settings_[i]->printTo(printer, valueSeparator);
+      }
     }
-  }
-
-  void printTo(Print *printer, char *valueSeparator)
+  */
+  MicroSettingGroup(const char *name, MicroSetting **settings, size_t count)
   {
-    printer->print(name_);
-    if (valueSeparator)
-      printer->print(valueSeparator);
-    printValueTo(printer);
+    name_ = name;
+    settings_ = settings;
+    count_ = count;
+    current_ = 0;
   }
+};
 
-   void setFloat(float f)
-  {
-    switch (type_)
-    {
-    case 'e':
-    case 'i':
-      value_.i = MicroTof::wrap(floor(f), min_.i, max_exclusive_.i);
-      break;
-    case 'f':
-      value_.f = MicroTof::wrapf(f, min_.f, max_exclusive_.f);
-      break;
-    }
-  }
-
-   void setInt(int32_t i)
-  {
-    switch (type_)
-    {
-    case 'e':
-    case 'i':
-      value_.i = MicroTof::wrap(i, min_.i, max_exclusive_.i);
-      break;
-    case 'f':
-      value_.f = MicroTof::wrapf(i, min_.f, max_exclusive_.f);
-      break;
-    }
-  }
-
-  void rotate(int amount)
-  {
-    switch (type_)
-    {
-    case 'e':
-    case 'i':
-      setInt(value_.i + amount);
-      break;
-    case 'f':
-      setFloat(value_.f + ((float)amount * stepf_));
-      break;
-    }
-  }
-
-  int32_t getInt()
-  {
-    return value_.i;
-  }
-
-  // None
-  MicroSetting(const char *name) : name_(name), type_('n')
-  {
-  }
-
-  // Int
-  MicroSetting(const char *name,
-               int32_t min,
-               int32_t max,
-               int32_t initial)
-      : name_(name), type_('i')
-  {
-    min_.i = min;
-    max_exclusive_.i = max;
-    setInt(initial);
-  }
 /*
-  MicroSetting(const char *name, int32_t max)
-      : MicroSetting(name, 0, max, 0)
+#ifdef ESP32
+
+  void putEachInPreferences(Preferences *preferences)
   {
+    for (int i = 0; i < count_; i++)
+    {
+      // LOG("Putting", i, settings_[i]->getName() );
+      settings_[i]->putInPreferences(preferences);
+    }
   }
 
-  MicroSetting(const char *name, int32_t min, int32_t max)
-      : MicroSetting(name, min, max, min)
+  void getEachFromPreferences(Preferences *preferences)
   {
-  }
-*/
-  // Enum
-  MicroSetting(const char *name, const char **labels, int32_t count)
-      : name_(name), type_('e'), labels_(labels)
-  {
-    value_.i = min_.i = 0;
-    max_exclusive_.i = count;
+    for (int i = 0; i < count_; i++)
+    {
+      // LOG("Getting", i, settings_[i]->getName() );
+      settings_[i]->getFromPreferences(preferences);
+    }
   }
 
-  // Float
-  MicroSetting(const char *name,
-               float min,
-               float max,
-               float initial,
-               float step)
-      : name_(name), type_('f'), stepf_(step)
-  {
-    min_.f = min;
-    max_exclusive_.f = max;
-    setFloat(initial);
-  }
+#endif
+};
+
+
+
 /*
-  // Constructor with only max (min = 0, initial = 0)
-  MicroSetting(const char *name, float max)
-      : MicroSetting(name, 0.0f, max, 0.0f, 0.1f)
-  {
-  }
-
-  // Constructor with min and max (initial = min)
-  MicroSetting(const char *name, float min, float max)
-      : MicroSetting(name, min, max, min, 0.1f)
-  {
-  }
-*/
-
 #ifdef ESP32
 public:
   virtual void putInPreferences(Preferences *preferences)
@@ -195,118 +250,4 @@ public:
   }
 
 #endif
-};
-
-class MicroSettingGroup
-{
-
-  size_t count_;
-  size_t current_;
-  const char *name_;
-  MicroSetting **settings_ = 0;
-  // MicroSetting::levels level_ = MicroSetting::KEY; //key or value
-
-public:
-  void rotate(int amount)
-  {
-    /*
-    if ( level_ == MicroSetting::KEY) current_ = MicroSetting::signedIntModulo(current_ + amount, count_);
-    else settings_[current_]->rotate(amount);
-    */
-    settings_[current_]->rotate(amount);
-  }
-
-  void rotateIndex(int amount)
-  {
-    current_ = MicroTof::wrap(current_ + amount, 0, count_);
-  }
-  /*
-    void rotateValue(int amount) {
-      settings_[current_]->rotate(amount);
-    }
-
-    void toggleLevel() {
-      if ( level_ == MicroSetting::KEY) level_ = MicroSetting::VALUE ;
-      else level_ = MicroSetting::KEY;
-    }
-
-    MicroSetting::levels getLevel() {
-      return level_;
-    }
-
-    void setLevel(MicroSetting::levels level) {
-      level_ = level;
-    }
-    */
-
-  MicroSetting *getCurrentSetting()
-  {
-    return settings_[current_];
-  }
-
-  MicroSetting *getSettingAtIndex(int index)
-  {
-    return settings_[index];
-  }
-
-  void setIndex(int index)
-  {
-    current_ = constrain(index, 0, count_);
-  }
-
-  int getIndex()
-  {
-    return current_;
-  }
-
-  const char *getName()
-  {
-    return name_;
-  }
-
-  int getCount()
-  {
-    return count_;
-  }
-
-  void printEachTo(Print *printer, char *valueSeparator, char *settingSeparator)
-  {
-    for (int i = 0; i < count_; i++)
-    {
-      if (i && settingSeparator)
-        printer->print(settingSeparator);
-
-      settings_[i]->printTo(printer, valueSeparator);
-    }
-  }
-
-  MicroSettingGroup(const char *name, MicroSetting **settings, size_t count)
-  {
-    name_ = name;
-    settings_ = settings;
-    count_ = count;
-    current_ = 0;
-  }
-
-#ifdef ESP32
-
-  void putEachInPreferences(Preferences *preferences)
-  {
-    for (int i = 0; i < count_; i++)
-    {
-      // LOG("Putting", i, settings_[i]->getName() );
-      settings_[i]->putInPreferences(preferences);
-    }
-  }
-
-  void getEachFromPreferences(Preferences *preferences)
-  {
-    for (int i = 0; i < count_; i++)
-    {
-      // LOG("Getting", i, settings_[i]->getName() );
-      settings_[i]->getFromPreferences(preferences);
-    }
-  }
-
-#endif
-};
+*/
