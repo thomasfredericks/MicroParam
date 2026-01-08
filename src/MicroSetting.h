@@ -1,16 +1,12 @@
 
-#ifndef LOG
-#define LOG(...)
-#endif
-
+#include <Arduino.h>
+#include <MicroTof.h>
 
 #ifdef ESP32
 #include <Preferences.h>
 #endif
 
-#ifndef SIZE_OF_ARRAY
-#define SIZE_OF_ARRAY(X)  (sizeof(X) / sizeof(X[0]))
-#endif
+
 
 // ===================================================
 class MicroSetting {
@@ -23,7 +19,6 @@ protected:
   int32_t int_value_ = 0;
   char type_ = 'n'; // none
   const char ** labels_ = 0;
-
 
 public:
 
@@ -78,28 +73,28 @@ public:
     type_ = 'n'; // none/nill
   }
 
-  MicroSetting(const char * name, int range) {
+  MicroSetting(const char * name, int count) {
     name_ = name;
     type_ = 'i';
     int_min_ = 0;
-    int_range_ = range;
+    int_range_ = count;
     int_value_ = int_min_;
   }
 
-  MicroSetting(const char * name, int32_t min, int32_t range) {
+  MicroSetting(const char * name, int32_t min, int32_t count) {
     name_ = name;
     type_ = 'i';
     int_min_ = min;
-    int_range_ = range;
+    int_range_ = count;
     int_value_ = int_min_;
   }
 
-  MicroSetting(const char * name, int32_t min, int32_t range, int32_t start) {
+  MicroSetting(const char * name, int32_t min, int32_t count, int32_t initial) {
     name_ = name;
     type_ = 'i';
     int_min_ = min;
-    int_range_ = range;
-    int_value_ = start;
+    int_range_ = count;
+    setInt(initial);
   }
 
   MicroSetting(const char * name, const char ** labels, int32_t count) {

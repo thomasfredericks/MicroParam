@@ -1,0 +1,27 @@
+{
+  "name": "MicroSetting",
+  "version": "0.1",
+  "description": "Micro (small, simple and lightweight) library to manage settings for Arduino. ",
+  "keywords": "Data Storage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasfredericks/MicroSetting.git"
+  },
+  "authors": [
+    {
+      "name": "Thomas Fredericks",
+      "url": "https://github.com/thomasfredericks",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/thomasfredericks/MicroSetting",
+  "dependencies": [
+    {
+    "name": "MicroTof",
+    "url": "https://github.com/thomasfredericks/MicroTof.git"
+    }
+  ],
+  "frameworks": "*",
+  "platforms": "*"
+}
