@@ -11,7 +11,6 @@
 // ===================================================
 class MicroSetting {
 public:
-
 protected:
   const char * name_;
   int32_t int_min_ = 0;
@@ -26,10 +25,7 @@ public:
     return name_;
   }
 
-  static int32_t signedIntModulo(int32_t value, int32_t modulo) {
-    while ( value < 0 ) value += modulo;
-    return (value % modulo);
-  }
+
 
   const char * getLabel() {
     if (labels_) return labels_[int_value_];
@@ -56,7 +52,7 @@ public:
   }
 
   virtual void setInt(int32_t i) {
-    int_value_ = MicroSetting::signedIntModulo(i - int_min_, int_range_ ) + int_min_;
+    int_value_ = MicroTof::wrap(i, int_min_, int_min_ + int_range_);
   }
 
   void rotate(int amount)  {
@@ -155,7 +151,7 @@ public:
   }
 
   void rotateIndex(int amount) {
-    current_ = MicroSetting::signedIntModulo(current_ + amount, count_);
+    current_ = MicroTof::wrap(current_ + amount, 0, count_);
   }
 /*
   void rotateValue(int amount) {
@@ -222,14 +218,14 @@ public:
 
   void putEachInPreferences(Preferences * preferences) {
     for (int i = 0; i < count_; i++) {
-      LOG("Putting", i, settings_[i]->getName() );
+      //LOG("Putting", i, settings_[i]->getName() );
       settings_[i]->putInPreferences(preferences);
     }
   }
 
   void getEachFromPreferences(Preferences * preferences) {
     for (int i = 0; i < count_; i++) {
-      LOG("Getting", i, settings_[i]->getName() );
+      //LOG("Getting", i, settings_[i]->getName() );
       settings_[i]->getFromPreferences(preferences);
     }
   }
