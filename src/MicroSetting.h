@@ -20,11 +20,32 @@ public:
   // virtual ~MicroSettingBase() = default;
 
   const char *getName() const { return name_; }
-  virtual void setFloat(float f) = 0;
-  virtual void setInt(int32_t i) = 0;
-  virtual float getFloat() = 0;
-  virtual int32_t getInt() = 0;
-  virtual void rotate(int amount) = 0;
+  char getType() { return type_; };
+  virtual void rotate(int32_t amount)
+  {
+  }
+  virtual void setFloat(float f)
+  {
+  }
+  virtual void setInt(int32_t i)
+  {
+  }
+  virtual float getFloat()
+  {
+    return 0;
+  }
+  virtual int32_t getInt()
+  {
+    return 0;
+  }
+  virtual int32_t getMicroSettingCount()
+  {
+    return 0; // returns 0 except for groups
+  };
+  virtual MicroSetting *getMicroSetting(int32_t index)
+  {
+    return nullptr; // returns nullptr except for groups
+  }
 };
 
 class MicroSettingInt : public MicroSetting
@@ -41,22 +62,22 @@ public:
     setInt(initial);
   }
 
-  void setInt(int32_t i) override
+  void setInt(int32_t i)
   {
     value_ = MicroTof::clampExclusive(i, min_, max_);
   }
+
+  void rotate(int32_t amount) override
+  {
+    setInt(value_ + amount);
+  }
+
+  int32_t getInt() { return value_; }
 
   void setFloat(float f) override
   {
     setInt((int32_t)floor(f));
   }
-
-  void rotate(int amount) override
-  {
-    setInt(value_ + amount);
-  }
-
-  int32_t getInt() override { return value_; }
 
   float getFloat() override { return (float)value_; }
 };
@@ -77,26 +98,26 @@ public:
   }
 
   MicroSettingFloat(const char *name, float min, float maxInclusive, float initial)
-     : MicroSettingFloat(name, min, maxInclusive, initial, 0.1f) 
+      : MicroSettingFloat(name, min, maxInclusive, initial, 0.1f)
   {
   }
 
-  void setFloat(float f) override
+  void setFloat(float f)
   {
     value_ = MicroTof::clampInclusivef(f, min_, max_);
   }
+
+  void rotate(int32_t amount) override
+  {
+    setFloat(value_ + step_ * amount);
+  }
+
+  float getFloat() { return value_; }
 
   void setInt(int32_t i) override
   {
     setFloat((float)i);
   }
-
-  void rotate(int amount) override
-  {
-    setFloat(value_ + step_ * amount);
-  }
-
-  float getFloat() override { return value_; }
 
   int32_t getInt() override { return floor(value_); }
 };
@@ -117,22 +138,22 @@ public:
     value_ = MicroTof::wrapExclusive(i, 0, count_);
   }
 
-  void setFloat(float f) override
-  {
-    setInt((int32_t)floor(f));
-  }
-
-  void rotate(int amount) override
+  void rotate(int32_t amount) override
   {
     setInt(value_ + amount);
   }
 
   int32_t getInt() override { return value_; }
 
+  void setFloat(float f) override
+  {
+    setInt((int32_t)floor(f));
+  }
+
   float getFloat() override { return (float)value_; }
 };
 
-class MicroSettingGroup
+class MicroSettingGroup : public MicroSetting
 {
 
   size_t count_;
@@ -143,58 +164,75 @@ class MicroSettingGroup
 
 public:
 
-  void rotateIndex(int amount)
+ /*  void rotate(int32_t amount) override
   {
     current_ = MicroTof::wrapExclusive(current_ + amount, 0, count_);
   }
 
-  MicroSetting * getCurrentSetting()
-  {
-    return settings_[current_];
-  }
-
-MicroSetting * getSettingAtIndex(int index) const {
-    return (index >= 0 && index < count_) ? settings_[index] : nullptr;
-}
-
-  void setIndex(int index)
+  void setInt(int32_t index) override
   {
     current_ = MicroTof::clampExclusive(index, 0, count_);
   }
 
-  int getIndex()
+  int32_t getInt() override
   {
     return current_;
+  } */
+
+  MicroSettingGroup(const char *name, MicroSetting **settings, size_t count) : MicroSetting(name, 'g')
+  {
+    settings_ = settings;
+    count_ = count;
+    current_ = 0;
   }
 
-  const char *getName()
+/*   void setFloat(float f) override
   {
-    return name_;
+    setInt((int32_t)floor(f));
   }
+
+  float getFloat() override { return (float)current_; } */
+
+  int32_t getMicroSettingCount() override { return count_; }
+
+  MicroSetting *getMicroSetting(int32_t index) override
+  {
+    if (count_ == 0)
+      return nullptr;
+    return settings_[MicroTof::clampExclusive(index, 0, count_)];
+  }
+
+  /*
+  MicroSetting *getCurrentSetting()
+  {
+    return settings_[current_];
+  }
+
+  MicroSetting *getSettingAtIndex(int index) const
+  {
+    return (index >= 0 && index < count_) ? settings_[index] : nullptr;
+  }
+
+
 
   int getCount()
   {
     return count_;
   }
-  /*
-    void printEachTo(Print *printer, char *valueSeparator, char *settingSeparator)
-    {
-      for (int i = 0; i < count_; i++)
-      {
-        if (i && settingSeparator)
-          printer->print(settingSeparator);
+    */
 
-        settings_[i]->printTo(printer, valueSeparator);
-      }
-    }
-  */
-  MicroSettingGroup(const char *name, MicroSetting **settings, size_t count)
-  {
-    name_ = name;
-    settings_ = settings;
-    count_ = count;
-    current_ = 0;
-  }
+  /*
+   void printEachTo(Print *printer, char *valueSeparator, char *settingSeparator)
+   {
+     for (int i = 0; i < count_; i++)
+     {
+       if (i && settingSeparator)
+         printer->print(settingSeparator);
+
+       settings_[i]->printTo(printer, valueSeparator);
+     }
+   }
+ */
 };
 
 /*
@@ -251,3 +289,58 @@ public:
 
 #endif
 */
+
+MicroSetting *matchPath(MicroSetting *root, const char *path, char separator)
+{
+  if (!root || !path)
+    return nullptr;
+
+  // Skip leading '/'
+  if (*path == separator)
+    path++;
+
+  MicroSetting *current = root;
+
+  while (*path && current)
+  {
+    // Find end of current segment
+    const char *segmentStart = path;
+    const char *segmentEnd = path;
+
+    while (*segmentEnd && *segmentEnd != separator)
+      segmentEnd++;
+
+    size_t segmentLen = segmentEnd - segmentStart;
+
+    // Search children
+    bool found = false;
+    int count = current->getMicroSettingCount();
+    if (current->getType() == 'g') // If a group
+    {
+      for (int i = 0; i < count; i++)
+      {
+        MicroSetting *child = current->getMicroSetting(i);
+        const char *name = child->getName();
+
+        // Exact match: length + content
+        if (strncmp(name, segmentStart, segmentLen) == 0 &&
+            name[segmentLen] == '\0')
+        {
+          current = child;
+          found = true;
+          break;
+        }
+      }
+    }
+
+    if (!found)
+      return nullptr;
+
+    // Move to next segment
+    path = segmentEnd;
+    if (*path == separator)
+      path++;
+  }
+
+  return current;
+}
