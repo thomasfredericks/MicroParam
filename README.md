@@ -8,18 +8,10 @@ Micro (small, simple and lightweight) library to manage settings adapted for men
 
 ## Todo
 
-- [ ] Implement a change callback
-- [ ] Read/write flags
-- [ ] Rename rotate to rotateValue
-- [ ] Rename setInt to setInteger
-- [ ] Add setChar
-- [ ] Swap 
-- [ ] MicroSettingGroup needs to be 100% compatible with an array of integers, floats and chars
-	- setIndex
-	- rotateIndex, rotateValue
-	- MicroSettingArrayIntegers
-	- MicroSettingArrayChars
-	- MicroSettingArrayFloats
+- [ ] MicroSettingValue should be its own thing called MicroValue
+- [ ] Need to go up and down the tree at will
+- [ ] Copy path
+- [ ] Find MicroSetting
 
 ## Documentation
 

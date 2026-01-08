@@ -8,22 +8,43 @@
 
 #include <Arduino.h>
 #include <MicroTof.h>
-
+/*
 #define MICRO_SETTING_ARRAY_COUNT(x) (sizeof(x) / sizeof((x)[0]))
 
-#define MICRO_SETTING_GROUP(var, name, ...)                   \
-  MicroSetting* var##_children[] = { __VA_ARGS__ };\
-  MicroSettingGroup var(name, var##_children, MICRO_SETTING_ARRAY_COUNT(var##_children))
+#define MICRO_SETTING_GROUP(var, ...)             \
+  MicroSetting *var##_children[] = {__VA_ARGS__}; \
+  MicroSettingGroup var(var##_children, MICRO_SETTING_ARRAY_COUNT(var##_children))
+*/
+
 
 
 class MicroSetting
+{
+protected:
+  char * name_;
+  MicroSettingValue *value_; // not null for value
+  MicroSetting * parent_; // null for root
+  MicroSetting * children_;
+  size_t childrenCount_;
+
+public:
+  MicroSetting(MicroSetting *parent = nullptr,MicroSettingValue *value = nullptr)
+      : value_(value), parent_(parent) {}
+
+  void copyFullpath(char * path, size_t maxLength) {
+
+  }
+
+};
+
+class MicroSettingValue : public MicroSetting
 {
 protected:
   const char *name_;
   const char type_;
 
 public:
-  MicroSetting(const char *name, char type) : name_(name), type_(type) {}
+  MicroSettingValue(MicroSettingGroup &group, const char *name, char type) : MicroSetting(&group,this) , name_(name), type_(type) {}
   // virtual ~MicroSettingBase() = default;
 
   const char *getName() const { return name_; }
@@ -45,19 +66,17 @@ public:
   {
     return 0;
   }
-  virtual int32_t getChildCount()
-  {
-    return 0; // returns 0 except for groups
-  };
-  virtual MicroSetting *getChild(int32_t index)
-  {
-    return nullptr; // returns nullptr except for groups
-  }
-
-
+  /*   virtual int32_t getChildCount()
+    {
+      return 0; // returns 0 except for groups
+    };
+    virtual MicroSetting *getChild(int32_t index)
+    {
+      return nullptr; // returns nullptr except for groups
+    } */
 };
 
-class MicroSettingInt : public MicroSetting
+class MicroSettingInt : public MicroSettingValue
 {
 private:
   int32_t value_;
@@ -65,8 +84,8 @@ private:
   int32_t max_;
 
 public:
-  MicroSettingInt(const char *name, int32_t min, int32_t maxExclusive, int32_t initial)
-      : MicroSetting(name, 'i'), min_(min), max_(maxExclusive)
+  MicroSettingInt(MicroSettingGroup &group, const char *name, int32_t min, int32_t maxExclusive, int32_t initial)
+      : MicroSettingValue(group, name, 'i'), min_(min), max_(maxExclusive)
   {
     setInt(initial);
   }
@@ -91,7 +110,7 @@ public:
   float getFloat() override { return (float)value_; }
 };
 
-class MicroSettingFloat : public MicroSetting
+class MicroSettingFloat : public MicroSettingValue
 {
 private:
   float value_;
@@ -100,14 +119,14 @@ private:
   float step_;
 
 public:
-  MicroSettingFloat(const char *name, float min, float maxInclusive, float initial, float step)
-      : MicroSetting(name, 'f'), min_(min), max_(maxInclusive), step_(step)
+  MicroSettingFloat(MicroSettingGroup &group,const char *name, float min, float maxInclusive, float initial, float step)
+      : MicroSettingValue(group, name, 'f'), min_(min), max_(maxInclusive), step_(step)
   {
     setFloat(initial);
   }
 
-  MicroSettingFloat(const char *name, float min, float maxInclusive, float initial)
-      : MicroSettingFloat(name, min, maxInclusive, initial, 0.1f)
+  MicroSettingFloat(MicroSettingGroup &group,const char *name, float min, float maxInclusive, float initial)
+      : MicroSettingFloat(group,name, min, maxInclusive, initial, 0.1f)
   {
   }
 
@@ -131,7 +150,7 @@ public:
   int32_t getInt() override { return floor(value_); }
 };
 
-class MicroSettingEnum : public MicroSetting
+class MicroSettingEnum : public MicroSettingValue
 {
 private:
   int32_t value_;
@@ -139,8 +158,8 @@ private:
   int32_t count_;
 
 public:
-  MicroSettingEnum(const char *name, const char **labels, int32_t count)
-      : MicroSetting(name, 'e'), labels_(labels), count_(count), value_(0) {}
+  MicroSettingEnum(MicroSettingGroup &group, const char *name, const char **labels, int32_t count)
+      : MicroSettingValue(group, name, 'e'), labels_(labels), count_(count), value_(0) {}
 
   void setInt(int32_t i) override
   {
@@ -162,49 +181,48 @@ public:
   float getFloat() override { return (float)value_; }
 };
 
-class MicroSettingGroup : public MicroSetting
+class MicroSettingGroup
 {
 
-  size_t count_;
-  size_t current_;
-  const char *name_;
-  MicroSetting **settings_ = 0;
+  size_t count_ = 4;
+  // size_t current_;
+  // const char *name_;
+  MicroSetting * settings_[4];
   // MicroSetting::levels level_ = MicroSetting::KEY; //key or value
 
 public:
+  /*  void rotate(int32_t amount) override
+   {
+     current_ = MicroTof::wrapExclusive(current_ + amount, 0, count_);
+   }
 
- /*  void rotate(int32_t amount) override
-  {
-    current_ = MicroTof::wrapExclusive(current_ + amount, 0, count_);
-  }
+   void setInt(int32_t index) override
+   {
+     current_ = MicroTof::clampExclusive(index, 0, count_);
+   }
 
-  void setInt(int32_t index) override
-  {
-    current_ = MicroTof::clampExclusive(index, 0, count_);
-  }
+   int32_t getInt() override
+   {
+     return current_;
+   } */
 
-  int32_t getInt() override
-  {
-    return current_;
-  } */
-
-  MicroSettingGroup(const char *name, MicroSetting **settings, size_t count) : MicroSetting(name, 'g')
+  MicroSettingGroup(MicroSetting **settings, size_t count)
   {
     settings_ = settings;
     count_ = count;
-    current_ = 0;
+    // current_ = 0;
   }
 
-/*   void setFloat(float f) override
-  {
-    setInt((int32_t)floor(f));
-  }
+  /*   void setFloat(float f) override
+    {
+      setInt((int32_t)floor(f));
+    }
 
-  float getFloat() override { return (float)current_; } */
+    float getFloat() override { return (float)current_; } */
 
-  int32_t getChildCount() override { return count_; }
+  int32_t getChildCount() { return count_; }
 
-  MicroSetting * getChild(int32_t index) override
+  MicroSetting *getChild(int32_t index)
   {
     if (count_ == 0)
       return nullptr;
@@ -299,57 +317,43 @@ public:
 #endif
 */
 
+/*
 MicroSetting *matchPath(MicroSetting *root, const char *path, char separator)
 {
-  if (!root || !path)
-    return nullptr;
+    if (!root || !path) return nullptr;
 
-  // Skip leading '/'
-  if (*path == separator)
-    path++;
+    MicroSetting *current = root;
 
-  MicroSetting *current = root;
-
-  while (*path && current)
-  {
-    // Find end of current segment
-    const char *segmentStart = path;
-    const char *segmentEnd = path;
-
-    while (*segmentEnd && *segmentEnd != separator)
-      segmentEnd++;
-
-    size_t segmentLen = segmentEnd - segmentStart;
-
-    // Search children
-    bool found = false;
-    int count = current->getChildCount();
-    if (current->getType() == 'g') // If a group
+    while (*path && current)
     {
-      for (int i = 0; i < count; i++)
-      {
-        MicroSetting *child = current->getChild(i);
-        const char *name = child->getName();
+        // Find end of current segment
+        const char *segmentEnd = strchr(path, separator);
+        size_t segmentLen = segmentEnd ? (size_t)(segmentEnd - path) : strlen(path);
 
-        // Exact match: length + content
-        if (strncmp(name, segmentStart, segmentLen) == 0 &&
-            name[segmentLen] == '\0')
+        // Search children
+        bool found = false;
+        int count = current->getChildCount();
+
+        for (int i = 0; i < count; i++)
         {
-          current = child;
-          found = true;
-          break;
+            MicroSetting *child = current->getChild(i);
+            const char *name = child->getName();
+
+            // Match including the leading '/'
+            if (strncmp(name, path, segmentLen) == 0 && name[segmentLen] == '\0')
+            {
+                current = child;
+                found = true;
+                break;
+            }
         }
-      }
+
+        if (!found) return nullptr;
+
+        // Move to next segment
+        path += segmentLen;
+        if (*path == separator) path++;
     }
 
-    if (!found)
-      return nullptr;
-
-    // Move to next segment
-    path = segmentEnd;
-    if (*path == separator)
-      path++;
-  }
-
-  return current;
-}
+    return current;
+} */
