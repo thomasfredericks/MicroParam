@@ -9,6 +9,13 @@
 #include <Arduino.h>
 #include <MicroTof.h>
 
+#define MICRO_SETTING_ARRAY_COUNT(x) (sizeof(x) / sizeof((x)[0]))
+
+#define MICRO_SETTING_GROUP(var, name, ...)                   \
+  MicroSetting* var##_children[] = { __VA_ARGS__ };\
+  MicroSettingGroup var(name, var##_children, MICRO_SETTING_ARRAY_COUNT(var##_children))
+
+
 class MicroSetting
 {
 protected:
@@ -38,14 +45,16 @@ public:
   {
     return 0;
   }
-  virtual int32_t getMicroSettingCount()
+  virtual int32_t getChildCount()
   {
     return 0; // returns 0 except for groups
   };
-  virtual MicroSetting *getMicroSetting(int32_t index)
+  virtual MicroSetting *getChild(int32_t index)
   {
     return nullptr; // returns nullptr except for groups
   }
+
+
 };
 
 class MicroSettingInt : public MicroSetting
@@ -193,9 +202,9 @@ public:
 
   float getFloat() override { return (float)current_; } */
 
-  int32_t getMicroSettingCount() override { return count_; }
+  int32_t getChildCount() override { return count_; }
 
-  MicroSetting *getMicroSetting(int32_t index) override
+  MicroSetting * getChild(int32_t index) override
   {
     if (count_ == 0)
       return nullptr;
@@ -314,12 +323,12 @@ MicroSetting *matchPath(MicroSetting *root, const char *path, char separator)
 
     // Search children
     bool found = false;
-    int count = current->getMicroSettingCount();
+    int count = current->getChildCount();
     if (current->getType() == 'g') // If a group
     {
       for (int i = 0; i < count; i++)
       {
-        MicroSetting *child = current->getMicroSetting(i);
+        MicroSetting *child = current->getChild(i);
         const char *name = child->getName();
 
         // Exact match: length + content
