@@ -16,36 +16,55 @@
   MicroSettingGroup var(var##_children, MICRO_SETTING_ARRAY_COUNT(var##_children))
 */
 
+class MicroSetting; // forward declaration
 
-
-class MicroSetting
+class MicroSettingGroup
 {
-protected:
-  char * name_;
-  MicroSettingValue *value_; // not null for value
-  MicroSetting * parent_; // null for root
-  MicroSetting * children_;
-  size_t childrenCount_;
+  MicroTof::ResizableArray<MicroSetting *> children_{4};
 
 public:
-  MicroSetting(MicroSetting *parent = nullptr,MicroSettingValue *value = nullptr)
-      : value_(value), parent_(parent) {}
-
-  void copyFullpath(char * path, size_t maxLength) {
-
+  // Constructor: optionally pass parent
+  MicroSettingGroup()
+  {
   }
 
+  // Add a child setting (value or group)
+  void add(MicroSetting *child)
+  {
+    if (child)
+    {
+      children_.add(child);
+    }
+  }
+
+  // Number of children
+  size_t getCount() const
+  {
+    return children_.getCount();
+  }
+
+  // Access a child by index
+  MicroSetting * get(size_t index)
+  {
+    if (children_.getCount() == 0)
+      return nullptr;
+    index = MicroTof::clampExclusive(index, 0, children_.getCount());
+    return children_[index];
+  }
 };
 
-class MicroSettingValue : public MicroSetting
+class MicroSetting
 {
 protected:
   const char *name_;
   const char type_;
 
 public:
-  MicroSettingValue(MicroSettingGroup &group, const char *name, char type) : MicroSetting(&group,this) , name_(name), type_(type) {}
-  // virtual ~MicroSettingBase() = default;
+  MicroSetting(MicroSettingGroup & group, const char *name, char type)
+      : name_(name), type_(type)
+  {
+    group.add(this);
+  }
 
   const char *getName() const { return name_; }
   char getType() { return type_; };
@@ -76,7 +95,7 @@ public:
     } */
 };
 
-class MicroSettingInt : public MicroSettingValue
+class MicroSettingInt : public MicroSetting
 {
 private:
   int32_t value_;
@@ -85,7 +104,7 @@ private:
 
 public:
   MicroSettingInt(MicroSettingGroup &group, const char *name, int32_t min, int32_t maxExclusive, int32_t initial)
-      : MicroSettingValue(group, name, 'i'), min_(min), max_(maxExclusive)
+      : MicroSetting(group, name, 'i'), min_(min), max_(maxExclusive)
   {
     setInt(initial);
   }
@@ -110,7 +129,7 @@ public:
   float getFloat() override { return (float)value_; }
 };
 
-class MicroSettingFloat : public MicroSettingValue
+class MicroSettingFloat : public MicroSetting
 {
 private:
   float value_;
@@ -119,14 +138,14 @@ private:
   float step_;
 
 public:
-  MicroSettingFloat(MicroSettingGroup &group,const char *name, float min, float maxInclusive, float initial, float step)
-      : MicroSettingValue(group, name, 'f'), min_(min), max_(maxInclusive), step_(step)
+  MicroSettingFloat(MicroSettingGroup &group, const char *name, float min, float maxInclusive, float initial, float step)
+      : MicroSetting(group, name, 'f'), min_(min), max_(maxInclusive), step_(step)
   {
     setFloat(initial);
   }
 
-  MicroSettingFloat(MicroSettingGroup &group,const char *name, float min, float maxInclusive, float initial)
-      : MicroSettingFloat(group,name, min, maxInclusive, initial, 0.1f)
+  MicroSettingFloat(MicroSettingGroup &group, const char *name, float min, float maxInclusive, float initial)
+      : MicroSettingFloat(group, name, min, maxInclusive, initial, 0.1f)
   {
   }
 
@@ -150,7 +169,7 @@ public:
   int32_t getInt() override { return floor(value_); }
 };
 
-class MicroSettingEnum : public MicroSettingValue
+class MicroSettingEnum : public MicroSetting
 {
 private:
   int32_t value_;
@@ -159,7 +178,7 @@ private:
 
 public:
   MicroSettingEnum(MicroSettingGroup &group, const char *name, const char **labels, int32_t count)
-      : MicroSettingValue(group, name, 'e'), labels_(labels), count_(count), value_(0) {}
+      : MicroSetting(group, name, 'e'), labels_(labels), count_(count), value_(0) {}
 
   void setInt(int32_t i) override
   {
@@ -179,87 +198,6 @@ public:
   }
 
   float getFloat() override { return (float)value_; }
-};
-
-class MicroSettingGroup
-{
-
-  size_t count_ = 4;
-  // size_t current_;
-  // const char *name_;
-  MicroSetting * settings_[4];
-  // MicroSetting::levels level_ = MicroSetting::KEY; //key or value
-
-public:
-  /*  void rotate(int32_t amount) override
-   {
-     current_ = MicroTof::wrapExclusive(current_ + amount, 0, count_);
-   }
-
-   void setInt(int32_t index) override
-   {
-     current_ = MicroTof::clampExclusive(index, 0, count_);
-   }
-
-   int32_t getInt() override
-   {
-     return current_;
-   } */
-
-  MicroSettingGroup(MicroSetting **settings, size_t count)
-  {
-    settings_ = settings;
-    count_ = count;
-    // current_ = 0;
-  }
-
-  /*   void setFloat(float f) override
-    {
-      setInt((int32_t)floor(f));
-    }
-
-    float getFloat() override { return (float)current_; } */
-
-  int32_t getChildCount() { return count_; }
-
-  MicroSetting *getChild(int32_t index)
-  {
-    if (count_ == 0)
-      return nullptr;
-    return settings_[MicroTof::clampExclusive(index, 0, count_)];
-  }
-
-  /*
-  MicroSetting *getCurrentSetting()
-  {
-    return settings_[current_];
-  }
-
-  MicroSetting *getSettingAtIndex(int index) const
-  {
-    return (index >= 0 && index < count_) ? settings_[index] : nullptr;
-  }
-
-
-
-  int getCount()
-  {
-    return count_;
-  }
-    */
-
-  /*
-   void printEachTo(Print *printer, char *valueSeparator, char *settingSeparator)
-   {
-     for (int i = 0; i < count_; i++)
-     {
-       if (i && settingSeparator)
-         printer->print(settingSeparator);
-
-       settings_[i]->printTo(printer, valueSeparator);
-     }
-   }
- */
 };
 
 /*
