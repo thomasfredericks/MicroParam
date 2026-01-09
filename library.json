@@ -18,8 +18,7 @@
   "homepage": "https://github.com/thomasfredericks/MicroSetting",
   "dependencies": [
     {
-    "name": "MicroTof",
-    "url": "https://github.com/thomasfredericks/MicroTof.git"
+      "MicroTof": "https://github.com/thomasfredericks/MicroTof.git"
     }
   ],
   "frameworks": "*",
