@@ -1,6 +1,6 @@
 {
   "name": "MicroParam",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "Micro (small, simple and lightweight) library to manage parameters for Arduino. ",
   "keywords": "Data Storage",
   "repository": {
