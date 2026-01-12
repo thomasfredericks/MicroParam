@@ -97,9 +97,9 @@ public:
     setFloat(mapped);
   }
 
-  void mapInt(int32_t in, int32_t inMin, int32_t inMaxExclusive) override
+  void mapInt(int32_t in, int32_t inMin, int32_t inMax) override
   {
-    setInt(map(in, inMin, inMaxExclusive, min_, max_));
+    setInt(MicroTof::map<int32_t>(in, inMin, inMax, min_, max_));
   }
 
   MicroParamFloat( float initial, float min, float max)

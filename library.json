@@ -19,7 +19,7 @@
   "dependencies": [
     {
       "name": "MicroTof",
-    "url": "https://github.com/thomasfredericks/MicroTof.git"
+      "version": "https://github.com/thomasfredericks/MicroTof.git"
     }
   ],
   "frameworks": "*",
