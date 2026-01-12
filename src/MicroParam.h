@@ -150,4 +150,43 @@ public:
   }
 };
 */
+
+typedef MicroTof::KeyPointerPair<MicroParam *> KeyParamPair;
+
+class KeyParamCollection
+{
+
+    size_t count_ = 0;
+    KeyParamPair * pairs_;
+
+public:
+    KeyParamCollection(KeyParamPair * pairs, size_t count)
+        : pairs_(pairs), count_(count)
+    {
+
+    }
+
+  
+    // get pointer to the stored value by key
+    MicroParam * get(const char *key)
+    {
+        for (size_t i = 0; i < count_; ++i)
+        {
+            if (strcmp(pairs_[i].key_, key) == 0)
+                return pairs_[i].pointer_;
+        }
+        return nullptr;
+    }
+
+    // get pointer by index
+    MicroParam * get(size_t index)
+    {
+        if (index >= count_)
+            return nullptr;
+        return pairs_[index].pointer_;
+    }
+
+    size_t getCount() const { return count_; }
+};
+
 #endif // __MICRO_PARAM_H__
