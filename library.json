@@ -18,8 +18,8 @@
   "homepage": "https://github.com/thomasfredericks/MicroParam",
   "dependencies": [
     {
-      "name": "MicroTof",
-      "version": "https://github.com/thomasfredericks/MicroTof.git"
+      "name": "MicroCommon",
+      "version": "https://github.com/thomasfredericks/MicroCommon.git"
     }
   ],
   "frameworks": "*",
