@@ -110,6 +110,48 @@ public:
 
 };
 
+/* class MicroParamBindInt : public MicroParam
+{
+    int32_t & value_; // reference to the actual int
+    int32_t min_ = 0;
+    int32_t max_ = 0;
+
+public:
+    // constructor: type 'i' for int, key not stored in base
+    MicroParamBindInt(int32_t &value, int32_t min, int32_t max)
+        : MicroParam('i'), value_(value), min_(min), max_(max)
+    {
+        setInt(value); // clamp initial value
+    }
+
+    // ===============================
+    // MicroParam int interface
+    void setInt(int32_t i) override
+  {
+    value_ = MicroTof::clamp<int32_t>(i, min_, max_);
+  }
+
+  int32_t getInt() const override { return value_; }
+
+  void setFloat(float f) override
+  {
+    setInt(floor(f));
+  }
+
+  float getFloat() const override { return (float)value_; }
+
+  void mapFloat(float in, float inMin, float inMax) override
+  {
+    float mapped = MicroTof::map<float>(in, inMin, inMax, min_, max_);
+    setFloat(mapped);
+  }
+
+  void mapInt(int32_t in, int32_t inMin, int32_t inMax) override
+  {
+    setInt(MicroTof::map<int32_t>(in, inMin, inMax, min_, max_));
+  }
+}; */
+
 /*
 class MicroParamEnum : public MicroParam
 {
