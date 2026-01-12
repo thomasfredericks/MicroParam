@@ -8,7 +8,7 @@ Micro (small, simple and lightweight) library to manage parameters.
 
 ## Structs and Classes
 
-### `MicroParam:MicroParamInt`
+### `MicroParamInt`
 Implements MicroParam for integer values.
 
 ```cpp
@@ -16,64 +16,52 @@ MicroParamInt myMicroParamInt(initial, min, max);
 ```
 Constructs a MicroParamInt with an initial value and range.
 
-**Parameters**:
+Parameters:
 - `initial`:  Initial value (`int32_t`)
 - `min`:  Minimum allowed value (`int32_t`)
 - `max`:  Maximum allowed value (`int32_t`)
 
-```cpp
-myMicroParamInt.setInt(i);
-```
+#### `myMicroParamInt.setInt(i);`
 Sets the integer value, clamped to the min and max range.
 
-**Parameters**:
+Parameters:
 - `i`:  New integer value (`int32_t`)
 
-```cpp
-myMicroParamInt.getInt();
-```
+#### `myMicroParamInt.getInt();`
 Gets the current integer value.
 
-**Returns**:
+Returns:
 - Current integer value (`int32_t`)
 
-```cpp
-myMicroParamInt.setFloat(f);
-```
+#### `myMicroParamInt.setFloat(f);`
 Sets the value using a float, converted to integer and clamped.
 
-**Parameters**:
+Parameters:
 - `f`:  New float value (`float`)
 
-```cpp
-myMicroParamInt.getFloat();
-```
+#### `myMicroParamInt.getFloat();`
 Gets the current value as a float.
 
-**Returns**:
+Returns:
 - Current value (`float`)
 
-```cpp
-myMicroParamInt.mapFloat(in, inMin, inMax);
-```
+#### `myMicroParamInt.mapFloat(in, inMin, inMax);`
 Maps a float input from one range to the internal integer range and sets it.
 
-**Parameters**:
+Parameters:
 - `in`:  Input value (`float`)
 - `inMin`:  Minimum of input range (`float`)
 - `inMax`:  Maximum of input range (`float`)
 
-```cpp
-myMicroParamInt.mapInt(in, inMin, inMax);
-```
+#### `myMicroParamInt.mapInt(in, inMin, inMax);`
 Maps an integer input from one range to the internal integer range and sets it.
 
-**Parameters**:
+Parameters:
 - `in`:  Input value (`int32_t`)
 - `inMin`:  Minimum of input range (`int32_t`)
 - `inMax`:  Maximum of input range (`int32_t`)
 
-### `MicroParam:MicroParamFloat`
+### `MicroParamFloat`
 Implements MicroParam for floating-point values.
 
 ```cpp
@@ -81,59 +69,47 @@ MicroParamFloat myMicroParamFloat(initial, min, max);
 ```
 Constructs a MicroParamFloat with an initial value and range.
 
-**Parameters**:
+Parameters:
 - `initial`:  Initial value (`float`)
 - `min`:  Minimum allowed value (`float`)
 - `max`:  Maximum allowed value (`float`)
 
-```cpp
-myMicroParamFloat.setFloat(f);
-```
+#### `myMicroParamFloat.setFloat(f);`
 Sets the float value, clamped to the min and max range.
 
-**Parameters**:
+Parameters:
 - `f`:  New float value (`float`)
 
-```cpp
-myMicroParamFloat.getFloat();
-```
+#### `myMicroParamFloat.getFloat();`
 Gets the current float value.
 
-**Returns**:
+Returns:
 - Current value (`float`)
 
-```cpp
-myMicroParamFloat.setInt(i);
-```
+#### `myMicroParamFloat.setInt(i);`
 Sets the value using an integer, converted to float and clamped.
 
-**Parameters**:
+Parameters:
 - `i`:  New integer value (`int32_t`)
 
-```cpp
-myMicroParamFloat.getInt();
-```
+#### `myMicroParamFloat.getInt();`
 Gets the current value as an integer (floored).
 
-**Returns**:
+Returns:
 - Current value (`int32_t`)
 
-```cpp
-myMicroParamFloat.mapFloat(in, inMin, inMax);
-```
+#### `myMicroParamFloat.mapFloat(in, inMin, inMax);`
 Maps a float input from one range to the internal float range and sets it.
 
-**Parameters**:
+Parameters:
 - `in`:  Input value (`float`)
 - `inMin`:  Minimum of input range (`float`)
 - `inMax`:  Maximum of input range (`float`)
 
-```cpp
-myMicroParamFloat.mapInt(in, inMin, inMax);
-```
+#### `myMicroParamFloat.mapInt(in, inMin, inMax);`
 Maps an integer input from one range to the internal float range and sets it.
 
-**Parameters**:
+Parameters:
 - `in`:  Input value (`int32_t`)
 - `inMin`:  Minimum of input range (`int32_t`)
 - `inMax`:  Maximum of input range (`int32_t`)
@@ -142,6 +118,8 @@ Maps an integer input from one range to the internal float range and sets it.
 
 ### `MicroParamBind`
 Type alias for `Micro::Bind<MicroParam *>`.
+- Example use: `MicroParamBind bindings[] = { {"/param1", &param1}, {"/param2", &param2} };`
 
 ### `MicroParamBinder`
 Type alias for `Micro::Binder<MicroParam *>`.
+- Example use: `MicroParamBinder binder(bindings, sizeof(bindings) / sizeof(MicroParamBind));`
