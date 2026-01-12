@@ -8,118 +8,189 @@ Micro (small, simple and lightweight) library to manage parameters.
 
 ## Structs and Classes
 
-### `MicroParamInt`
-Implements MicroParam for integer values.
+### MicroParam
+Base class for parameter types. Represents a generic parameter with integer and float interfaces.
+
+#### Constructors
+
+```cpp
+MicroParam myMicroParam(type);
+```
+Creates a parameter with a specific type.
+
+- Parameters:
+  - `type`: Character representing the parameter type (`char`)
+
+### MicroParamInt
+Integer parameter with minimum and maximum bounds.
+
+#### Constructors
 
 ```cpp
 MicroParamInt myMicroParamInt(initial, min, max);
 ```
-Constructs a MicroParamInt with an initial value and range.
+Creates an integer parameter with an initial value and bounds.
 
-Parameters:
-- `initial`:  Initial value (`int32_t`)
-- `min`:  Minimum allowed value (`int32_t`)
-- `max`:  Maximum allowed value (`int32_t`)
+- Parameters:
+  - `initial`: Initial value (`int32_t`)
+  - `min`: Minimum allowed value (`int32_t`)
+  - `max`: Maximum allowed value (`int32_t`)
 
-#### `myMicroParamInt.setInt(i);`
-Sets the integer value, clamped to the min and max range.
+#### Method `setInt(i);`
 
-Parameters:
-- `i`:  New integer value (`int32_t`)
+```cpp
+myMicroParamInt.setInt(i);
+```
+Sets the integer value, clamped to the minimum and maximum.
 
-#### `myMicroParamInt.getInt();`
+- Parameters:
+  - `i`: Value to set (`int32_t`)
+
+#### Method `getInt();`
+
+```cpp
+int32_t value = myMicroParamInt.getInt();
+```
 Gets the current integer value.
 
-Returns:
-- Current integer value (`int32_t`)
+- Returns:
+  - Current value (`int32_t`)
 
-#### `myMicroParamInt.setFloat(f);`
-Sets the value using a float, converted to integer and clamped.
+#### Method `setFloat(f);`
 
-Parameters:
-- `f`:  New float value (`float`)
+```cpp
+myMicroParamInt.setFloat(f);
+```
+Sets the parameter from a float by flooring the value and clamping it.
 
-#### `myMicroParamInt.getFloat();`
+- Parameters:
+  - `f`: Float value to set (`float`)
+
+#### Method `getFloat();`
+
+```cpp
+float value = myMicroParamInt.getFloat();
+```
 Gets the current value as a float.
 
-Returns:
-- Current value (`float`)
+- Returns:
+  - Current value (`float`)
 
-#### `myMicroParamInt.mapFloat(in, inMin, inMax);`
-Maps a float input from one range to the internal integer range and sets it.
+#### Method `mapFloat(in, inMin, inMax);`
 
-Parameters:
-- `in`:  Input value (`float`)
-- `inMin`:  Minimum of input range (`float`)
-- `inMax`:  Maximum of input range (`float`)
+```cpp
+myMicroParamInt.mapFloat(in, inMin, inMax);
+```
+Maps a float input from a source range to the parameter's integer range.
 
-#### `myMicroParamInt.mapInt(in, inMin, inMax);`
-Maps an integer input from one range to the internal integer range and sets it.
+- Parameters:
+  - `in`: Input value (`float`)
+  - `inMin`: Minimum of input range (`float`)
+  - `inMax`: Maximum of input range (`float`)
 
-Parameters:
-- `in`:  Input value (`int32_t`)
-- `inMin`:  Minimum of input range (`int32_t`)
-- `inMax`:  Maximum of input range (`int32_t`)
+#### Method `mapInt(in, inMin, inMax);`
 
-### `MicroParamFloat`
-Implements MicroParam for floating-point values.
+```cpp
+myMicroParamInt.mapInt(in, inMin, inMax);
+```
+Maps an integer input from a source range to the parameter's integer range.
+
+- Parameters:
+  - `in`: Input value (`int32_t`)
+  - `inMin`: Minimum of input range (`int32_t`)
+  - `inMax`: Maximum of input range (`int32_t`)
+
+### MicroParamFloat
+Floating-point parameter with minimum and maximum bounds.
+
+#### Constructors
 
 ```cpp
 MicroParamFloat myMicroParamFloat(initial, min, max);
 ```
-Constructs a MicroParamFloat with an initial value and range.
+Creates a float parameter with an initial value and bounds.
 
-Parameters:
-- `initial`:  Initial value (`float`)
-- `min`:  Minimum allowed value (`float`)
-- `max`:  Maximum allowed value (`float`)
+- Parameters:
+  - `initial`: Initial value (`float`)
+  - `min`: Minimum allowed value (`float`)
+  - `max`: Maximum allowed value (`float`)
 
-#### `myMicroParamFloat.setFloat(f);`
-Sets the float value, clamped to the min and max range.
+#### Method `setFloat(f);`
 
-Parameters:
-- `f`:  New float value (`float`)
+```cpp
+myMicroParamFloat.setFloat(f);
+```
+Sets the float value, clamped to the minimum and maximum.
 
-#### `myMicroParamFloat.getFloat();`
+- Parameters:
+  - `f`: Value to set (`float`)
+
+#### Method `getFloat();`
+
+```cpp
+float value = myMicroParamFloat.getFloat();
+```
 Gets the current float value.
 
-Returns:
-- Current value (`float`)
+- Returns:
+  - Current value (`float`)
 
-#### `myMicroParamFloat.setInt(i);`
-Sets the value using an integer, converted to float and clamped.
+#### Method `setInt(i);`
 
-Parameters:
-- `i`:  New integer value (`int32_t`)
+```cpp
+myMicroParamFloat.setInt(i);
+```
+Sets the parameter from an integer by converting it to float and clamping.
 
-#### `myMicroParamFloat.getInt();`
+- Parameters:
+  - `i`: Integer value to set (`int32_t`)
+
+#### Method `getInt();`
+
+```cpp
+int32_t value = myMicroParamFloat.getInt();
+```
 Gets the current value as an integer (floored).
 
-Returns:
-- Current value (`int32_t`)
+- Returns:
+  - Current value (`int32_t`)
 
-#### `myMicroParamFloat.mapFloat(in, inMin, inMax);`
-Maps a float input from one range to the internal float range and sets it.
+#### Method `mapFloat(in, inMin, inMax);`
 
-Parameters:
-- `in`:  Input value (`float`)
-- `inMin`:  Minimum of input range (`float`)
-- `inMax`:  Maximum of input range (`float`)
+```cpp
+myMicroParamFloat.mapFloat(in, inMin, inMax);
+```
+Maps a float input from a source range to the parameter's float range.
 
-#### `myMicroParamFloat.mapInt(in, inMin, inMax);`
-Maps an integer input from one range to the internal float range and sets it.
+- Parameters:
+  - `in`: Input value (`float`)
+  - `inMin`: Minimum of input range (`float`)
+  - `inMax`: Maximum of input range (`float`)
 
-Parameters:
-- `in`:  Input value (`int32_t`)
-- `inMin`:  Minimum of input range (`int32_t`)
-- `inMax`:  Maximum of input range (`int32_t`)
+#### Method `mapInt(in, inMin, inMax);`
 
-## Typedefs
+```cpp
+myMicroParamFloat.mapInt(in, inMin, inMax);
+```
+Maps an integer input from a source range to the parameter's float range.
 
-### `MicroParamBind`
+- Parameters:
+  - `in`: Input value (`int32_t`)
+  - `inMin`: Minimum of input range (`int32_t`)
+  - `inMax`: Maximum of input range (`int32_t`)
+
+### MicroParamBind
 Type alias for `Micro::Bind<MicroParam *>`.
-- Example use: `MicroParamBind bindings[] = { {"/param1", &param1}, {"/param2", &param2} };`
 
-### `MicroParamBinder`
+Example usage:
+```cpp
+MicroParamBind bindings[] = { {"/param1", &param1}, {"/param2", &param2} };
+```
+
+### MicroParamBinder
 Type alias for `Micro::Binder<MicroParam *>`.
-- Example use: `MicroParamBinder binder(bindings, sizeof(bindings) / sizeof(MicroParamBind));`
+
+Example usage:
+```cpp
+MicroParamBinder binder(bindings, sizeof(bindings) / sizeof(MicroParamBind));
+```
