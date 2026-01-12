@@ -191,9 +191,12 @@ public:
     setInt(map(in, inMin, inMaxExclusive, 0, count_ - 1));
   }
 };
-*/
 
+*/
+// Example use MicroParamBind bindings[] = { {"/param1", &param1}, {"/param2", &param2} };
 typedef Micro::Bind<MicroParam *> MicroParamBind;
+
+// Example use MicroParamBinder binder(bindings, sizeof(bindings) / sizeof(MicroParamBind));
 typedef Micro::Binder<MicroParam *> MicroParamBinder;
 
 /* class Bindings
