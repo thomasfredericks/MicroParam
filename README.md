@@ -6,7 +6,7 @@ Micro (small, simple and lightweight) library to manage parameters.
 > The project is currently highly a work in progress. 
 > The API might change between releases.
 
-### Structs and Classes
+## Structs and Classes
 
 ### MicroParam
 - Abstract base class representing a generic parameter that can be accessed, converted, and range-mapped as either an integer or a floating-point value.
