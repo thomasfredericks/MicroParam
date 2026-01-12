@@ -151,22 +151,22 @@ public:
 };
 */
 
-typedef MicroTof::KeyPointerPair<MicroParam *> KeyParamPair;
+typedef MicroTof::Bind<MicroParam *> MicroParamBind;
+typedef MicroTof::Binder<MicroParam *> MicroParamBinder;
 
-class KeyParamCollection
+/* class Bindings
 {
 
     size_t count_ = 0;
-    KeyParamPair * pairs_;
+    MicroParamBind * pairs_;
 
 public:
-    KeyParamCollection(KeyParamPair * pairs, size_t count)
+    KeyParamCollection(MicroParamBind * pairs, size_t count)
         : pairs_(pairs), count_(count)
     {
 
     }
 
-  
     // get pointer to the stored value by key
     MicroParam * get(const char *key)
     {
@@ -187,6 +187,6 @@ public:
     }
 
     size_t getCount() const { return count_; }
-};
+}; */
 
 #endif // __MICRO_PARAM_H__
