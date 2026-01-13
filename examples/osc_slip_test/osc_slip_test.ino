@@ -1,17 +1,26 @@
 
 #include <Arduino.h>
-#include <MicroSetting.h>
+#include <MicroParam.h>
 
-MicroSettingGroup settings;
-MicroSettingInt amp_attack(settings, "/atk", 0, 128, 2);
-MicroSettingInt amp_decay(settings, "/dcy", 1, 2000, 400);
+MicroParamInt amp_attack(2, 0, 128);
+MicroParamInt amp_decay(400, 1, 2000);
+MicroParamInt filter_attack(0, 0, 128);
+MicroParamInt filter_decay(256, 1, 2000);
+MicroParamInt filter_mod(32, 0, 256);
+MicroParamInt filter_cutoff(64, 0, 128);
+MicroParamInt filter_resonance(128, 0, 256);
 
-MicroSettingInt filter_attack(settings, "/vcf/atk", 0, 128, 4);
-MicroSettingInt filter_decay(settings, "/vcf/dcy", 1, 2000, 256);
-MicroSettingInt filter_mod(settings, "/vcf/mod", 0, 256, 32);
 
-MicroSettingInt filter_cutoff(settings, "/vcf/cut", 0, 128, 64);
-MicroSettingInt filter_resonance(settings, "/vcf/res", 0, 256, 128);
+MicroParamBind bindings[] = {
+    {"/vca/atk", &amp_attack},
+    {"/vca/dcy", &amp_decay},
+    {"/vcf/atk", &filter_attack},
+    {"/vcf/dcy", &filter_decay},
+    {"/vcf/mod", &filter_mod},
+    {"/vcf/cut", &filter_cutoff},
+    {"/vcf/res", &filter_resonance}
+};
+MicroParamBinder binder(bindings, sizeof(bindings) / sizeof(MicroParamBind));
 
 #include <MicroOscSlip.h>
 // The number 128 between the < > below  is the maximum number of bytes reserved for incomming messages.
@@ -25,25 +34,20 @@ void myOscMessageParser(MicroOsc & source, MicroOscMessage & receivedOscMessage)
 {
     // DO MESSAGE ADDRESS CHECKING AND ARGUMENT GETTING HERE
 
-    size_t count = settings.getCount();
+     MicroParam *param = binder.getPointer(receivedOscMessage.getOscAddress());
 
-    for (int32_t i = 0; i < count; ++i)
+  if (param)
+  {
+    if (receivedOscMessage.getTypeTag() == 'i')
     {
-        MicroSetting *setting = settings.get(i);
-
-        if (receivedOscMessage.checkOscAddress(setting->getName()))
-        {
-            if (receivedOscMessage.getTypeTag() == 'i')
-            {
-                setting->setInt(receivedOscMessage.nextAsInt());
-            }
-            else if (receivedOscMessage.getTypeTag() == 'f')
-            {
-                setting->setFloat(receivedOscMessage.nextAsFloat());
-            }
-            break;
-        }
+      param->setInt(receivedOscMessage.nextAsInt());
     }
+    else if (receivedOscMessage.getTypeTag() == 'f')
+    {
+      param->setFloat(receivedOscMessage.nextAsFloat());
+    }
+    return;
+  }
 }
 
 void setup()
@@ -62,18 +66,18 @@ void loop()
     {
         chrono = millis();
 
-        size_t count = settings.getCount();
+        size_t count = binder.getCount();
 
         for (int32_t i = 0; i < count; ++i)
         {
-            MicroSetting *setting = settings.get(i);
-            if (setting->getType() == 'i')
+            MicroParam *param = binder.getPointer(i);
+            if (param->getType() == 'i')
             {
-                myOsc.sendInt(setting->getName(), setting->getInt());
+                myOsc.sendInt(binder.getKey(i), param->getInt());
             }
-            else if (setting->getType() == 'f')
+            else if (param->getType() == 'f')
             {
-                myOsc.sendFloat(setting->getName(), setting->getFloat());
+                myOsc.sendFloat(binder.getKey(i), param->getFloat());
             }
         }
 
