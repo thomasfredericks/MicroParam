@@ -15,7 +15,10 @@ public:
   MicroParam(char type) : type_(type)
   {
   }
-
+  
+  char getType() { 
+    return type_ ;
+  }
   virtual void setInt(int32_t v) = 0;
   virtual int32_t getInt() const = 0;
 
