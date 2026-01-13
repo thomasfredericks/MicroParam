@@ -6,6 +6,17 @@ Micro (small, simple and lightweight) library to manage parameters.
 > The project is currently highly a work in progress. 
 > The API might change between releases.
 
+## Design Philosophy 
+
+### Why Paramers Do Not Have Names
+
+Parameters in MicroParam do not carry names internally. This design is intentional for several reasons:
+- Memory Efficiency – By omitting names, each parameter uses less memory. This is especially important in embedded or resource-constrained environments.
+- Performance – Operations on unnamed parameters (e.g., setting, getting, mapping) are faster since there is no need to manage string data or perform lookups by name.
+- Controlled Exposure – Names are only needed when parameters are exposed externally (e.g., via bindings). This allows you to selectively expose only the parameters you want, keeping internal data private and clean.
+
+Names are only assigned **when binding parameters** (using `MicroParamBind` or `MicroParamBinder`) because that is the only time they are needed—for external interfaces, UI exposure, or network interaction. Internal operations remain fast and lightweight, without the overhead of storing or searching names.
+
 ## Structs and Classes
 
 ### MicroParam
