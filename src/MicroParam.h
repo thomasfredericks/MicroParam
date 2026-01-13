@@ -63,7 +63,7 @@ public:
   }
 
   MicroParamInt(int32_t initial, int32_t min, int32_t max)
-      : MicroParam('i')
+      : MicroParam('i'), min_(min), max_(max)
   {
     setInt(initial);
   }
