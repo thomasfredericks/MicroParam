@@ -139,7 +139,7 @@ public:
 };
 
 
-/*
+
 class MicroParamEnum : public MicroParam
 {
 private:
@@ -148,27 +148,29 @@ private:
   int32_t count_;
 
 public:
-  MicroParamEnum( const char **labels, int32_t count)
-      : MicroParam('e'), labels_(labels), count_(count), value_(0) {}
+  MicroParamEnum( const char **labels, int32_t value, int32_t count)
+      : MicroParam('e'), labels_(labels), count_(count) {
+        setInt(value);
+      }
 
   void setInt(int32_t i) override
   {
     value_ = Micro::modulo(i, count_);
   }
 
-  int32_t getInt() override { return value_; }
+  int32_t getInt() const override { return value_; }
 
   void setFloat(float f) override
   {
     setInt((int32_t)floor(f));
   }
 
-  float getFloat() override { return (float)value_; }
+  float getFloat() const override { return (float)value_; }
 
   void mapFloat(float in, float inMin, float inMax) override
   {
     // Scale to integer range
-    float mapped = Micro::mapf(in, inMin, inMax, 0, count_ - 1);
+    float mapped = Micro::map<float>(in, inMin, inMax, 0, count_ - 1);
 
     setFloat(mapped);
   }
@@ -179,7 +181,7 @@ public:
   }
 };
 
-*/
+
 // Example use MicroParamBind bindings[] = { {"/param1", &param1}, {"/param2", &param2} };
 typedef Micro::Bind<MicroParam *> MicroParamBind;
 
