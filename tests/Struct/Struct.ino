@@ -1,136 +1,201 @@
 #include <Arduino.h>
 #include <MicroCommon.h>
 
-// ============================================================================================
 
-struct Value {
-  enum Type : uint8_t { INT, FLOAT, ENUM } type;
 
-  union {
-    uint32_t i;
-    float f;
-    int32_t e;
-  } value;
 
-  union {
-    struct {
-      uint32_t min, max;
-    } i;
-    struct {
-      float min, max;
-    } f;
-    struct {
-      int32_t count;
-    } e;
-  } meta;
+// ======================= Base types =======================
+struct MicroInt {
+    int32_t value;
+    int32_t min, max;
+    void set(int32_t v) { value = Micro::clamp(v, min, max); }
+    int32_t get() { return value};
 };
 
-// ======================= Values =======================
-
-Value values[] = {
-    // Ints
-    {Value::INT, {.i = 5}, {.i = {0, 127}}},
-    {Value::INT, {.i = 10}, {.i = {0, 127}}},
-
-    // Floats
-    {Value::FLOAT, {.f = 0.5f}, {.f = {0.0f, 1.0f}}},
-    {Value::FLOAT, {.f = 0.25f}, {.f = {0.0f, 1.0f}}},
-
-    // Enums
-    {Value::ENUM, {.e = 0}, {.e = {3}}},
-    {Value::ENUM, {.e = 1}, {.e = {3}}},
+struct MicroFloat {
+    float value;
+    float min, max;
+    void set(float v) { value = Micro::clamp(v, min, max); }
+    float get() { return value};
 };
 
-constexpr size_t VALUE_COUNT = sizeof(values) / sizeof(values[0]);
+struct MicroEnum {
+    int32_t value;
+    int32_t count;
+    char ** labels;
+    void set(int32_t v) { value = Micro::modulo(v, count); }
+    int32_t get() { return value};
+};
 
-// ============================================================================================
+// ======================= MicroParam =======================
+struct MicroParam {
+    enum Type : uint8_t { INT, FLOAT, ENUM } type;
+    const char *key;
+
+    union {
+        MicroInt   *i;
+        MicroFloat *f;
+        MicroEnum  *e;
+    } ptr;
+
+    // Overloaded bind constructors
+    static MicroParam bind(const char *k, MicroInt &v) {
+        MicroParam p;
+        p.type = INT;
+        p.key  = k;
+        p.ptr.i = &v;
+        return p;
+    }
+
+    static MicroParam bind(const char *k, MicroFloat &v) {
+        MicroParam p;
+        p.type = FLOAT;
+        p.key  = k;
+        p.ptr.f = &v;
+        return p;
+    }
+
+    static MicroParam bind(const char *k, MicroEnum &v) {
+        MicroParam p;
+        p.type = ENUM;
+        p.key  = k;
+        p.ptr.e = &v;
+        return p;
+    }
+
+    // Accessors
+    void setInt(int32_t v) {
+        switch(type) {
+            case INT:   ptr.i->set(v); break;
+            case FLOAT: ptr.f->set((float)v); break;
+            case ENUM:  ptr.e->set(v); break;
+        }
+    }
+
+    int32_t getInt() const {
+        switch(type) {
+            case INT:   return ptr.i->value;
+            case FLOAT: return (int32_t)ptr.f->value;
+            case ENUM:  return ptr.e->value;
+        }
+        return 0;
+    }
+
+    void setFloat(float v) {
+        switch(type) {
+            case FLOAT: ptr.f->set(v); break;
+            case INT:   ptr.i->set((int32_t)floor(v)); break;
+            case ENUM:  ptr.e->set((int32_t)floor(v)); break;
+        }
+    }
+
+    float getFloat() const {
+        switch(type) {
+            case FLOAT: return ptr.f->value;
+            case INT:   return (float)ptr.i->value;
+            case ENUM:  return (float)ptr.e->value;
+        }
+        return 0.0f;
+    }
+};
+
+// ---------------------- Values ----------------------
+MicroInt   i1{5, 0, 127};
+MicroInt   i2{10, 0, 127};
+MicroFloat f1{0.5f, 0.0f, 1.0f};
+MicroFloat f2{0.25f, 0.0f, 1.0f};
+MicroEnum  e1{0, 3};
+MicroEnum  e2{1, 3};
+
+// Array of MicroParam bindings
+MicroParam values[] = {
+    MicroParam::bind("i1", i1),
+    MicroParam::bind("i2", i2),
+    MicroParam::bind("f1", f1),
+    MicroParam::bind("f2", f2),
+    MicroParam::bind("e1", e1),
+    MicroParam::bind("e2", e2)
+};
+
+constexpr size_t VALUE_COUNT = sizeof(values)/sizeof(values[0]);
+
+
+// ======================= Benchmark =======================
 
 #define ITERATIONS 200000
 
+volatile int32_t sink_i;
+volatile float   sink_f;
+volatile int32_t sinke_e;
+
 struct BenchResult {
-  uint32_t cycles;
-  uint32_t heap;
-  uint32_t stack;
+    uint32_t cycles;
+    uint32_t heap;
+    uint32_t stack;
 };
 
-volatile int32_t sink_i;
-volatile float sink_f;
-
 static inline uint32_t cycles() { return ESP.getCycleCount(); }
-
 uint32_t freeHeap() { return ESP.getFreeHeap(); }
+uint32_t stackHighWater() { return uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t); }
 
-uint32_t stackHighWater() {
-  return uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t);
-}
 
-// ---------- Bench ----------
 
-BenchResult bench(Value *values, size_t count) {
-  BenchResult r;
+// ---------------------- Benchmark ----------------------
+// READ FROM COMMON ARRAY AND ASSIGN INT (TO FLOAT OR ENUM)
+uint32_t benchCommonArray() {
 
-  uint32_t start = cycles();
 
-  for (int i = 0; i < ITERATIONS; ++i) {
-    for (size_t v = 0; v < count; ++v) {
-      Value &val = values[v];
+    uint32_t start = cycles();
 
-      switch (val.type) {
-      case Value::INT:
-        val.value.i = Micro::clamp<uint32_t>(i, val.meta.i.min, val.meta.i.max);
-        sink_i = val.value.i;
-        val.value.f = (float)val.value.i * 0.001f;
-        sink_f = val.value.f;
-        break;
+    for(int i=0; i<ITERATIONS; ++i) {
+        for(size_t v=0; v<VALUE_COUNT; ++v) {
+            MicroParam &param = values[v];
 
-      case Value::FLOAT: {
-        float f = (float)i * 0.001f;
-        val.value.f = Micro::clamp<float>(f, val.meta.f.min, val.meta.f.max);
-        sink_f = val.value.f;
-        val.value.i = (uint32_t)floor(val.value.f);
-        sink_i = val.value.i;
-        break;
-      }
+            param.setInt(i);
+            sink_i = param.getInt();
 
-      case Value::ENUM:
-        val.value.e = Micro::modulo(i, val.meta.e.count);
-        sink_i = val.value.e;
-        val.value.f = (float)val.value.e;
-        sink_f = val.value.f;
-        break;
-      }
+        }
     }
-  }
 
-  r.cycles = cycles() - start;
-
-  uint32_t heapAfter = freeHeap();
-  uint32_t stackAfter = stackHighWater();
-
-  r.heap = freeHeap();
-  r.stack = stackHighWater();
-
-  return r;
+    return cycles() - start;
 }
 
-void setup() {
-  Serial.begin(115200);
-  delay(1000);
+// READ FROM COMMON ARRAY AND ASSIGN INT (TO FLOAT OR ENUM)
+uint32_t benchDirectUse() {
 
-  bench(values, VALUE_COUNT); // warm-up
+
+    uint32_t start = cycles();
+
+    for(int i=0; i<ITERATIONS; ++i) {
+      i1.set(i);
+      sink_i = i1.
+
+        MicroInt   i1{5, 0, 127};
+MicroInt   i2{10, 0, 127};
+MicroFloat f1{0.5f, 0.0f, 1.0f};
+MicroFloat f2{0.25f, 0.0f, 1.0f};
+MicroEnum  e1{0, 3};
+MicroEnum  e2{1, 3};
+    }
+
+    return cycles() - start;
+}
+
+// ======================= Setup / Loop =======================
+void setup() {
+    Serial.begin(115200);
+    delay(1000);
+
+    bench(); // warm-up
 }
 
 void loop() {
-  delay(5000);
+    delay(5000);
 
-  BenchResult r = bench(values, VALUE_COUNT);
-
-  Serial.println(__FILE__);
-  Serial.print("Cycles: ");
-  Serial.println(r.cycles);
-  Serial.print("Heap : ");
-  Serial.println(r.heap);
-  Serial.print("Stack : ");
-  Serial.println(r.stack);
-  Serial.println();
+    Serial.println(F(__FILE__));
+    Serial.print(F("Common Array: ")); Serial.println(benchCommonArray());
+    Serial.print(F("Direct Use: ")); Serial.println(benchDirectUse());
+    Serial.print(F("Heap: ")); Serial.println(freeHeap());
+    Serial.print(F("Stack: ")); Serial.println(stackHighWater());
+    Serial.println();
 }

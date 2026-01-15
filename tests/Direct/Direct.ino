@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <MicroCommon.h>
 
+
 // ============================================================================================
 
 // Ints
@@ -14,6 +15,7 @@ const float vFloatMin[2] = {0.0f, 0.0f};
 const float vFloatMax[2] = {1.0f, 1.0f};
 
 // Enums (as int32_t)
+const char* labels[3] = { "A", "B", "C" };
 int32_t vEnum[2] = {0, 1};
 const int32_t vEnumCount[2] = {3, 3};
 
@@ -22,94 +24,93 @@ constexpr size_t VALUE_INT = 2;
 constexpr size_t VALUE_FLOAT = 2;
 constexpr size_t VALUE_ENUM = 2;
 
-// ============================================================================================
 
-#define ITERATIONS 200000
 
-struct BenchResult {
-  uint32_t cycles;
-  uint32_t heap;
-  uint32_t stack;
-};
 
-volatile int32_t sink_i;
-volatile float sink_f;
+
+// ---------------------- Benchmark ----------------------
+
 
 static inline uint32_t cycles() { return ESP.getCycleCount(); }
-
 uint32_t freeHeap() { return ESP.getFreeHeap(); }
-
 uint32_t stackHighWater() {
   return uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t);
 }
 
-// ---------- Bench ----------
+#define ITERATIONS 200000
 
-BenchResult bench() {
-  BenchResult r;
+volatile int32_t sink_i;
+volatile float sink_f;
 
-  uint32_t heapBefore = freeHeap();
-  uint32_t stackBefore = stackHighWater();
+/* // READ FROM COMMON ARRAY AND ASSIGN INT (TO FLOAT OR ENUM)
+uint32_t benchCommonArray() {
+
+
   uint32_t start = cycles();
 
   for (int i = 0; i < ITERATIONS; ++i) {
-    // ----- Ints -----
-    for (size_t v = 0; v < VALUE_INT; ++v) {
-      vInt[v] = Micro::clamp<uint32_t>(i, vIntMin[v], vIntMax[v]);
-      sink_i = vInt[v];
+    for (size_t p = 0; p < PARAM_COUNT; ++p) {
+      MicroParam &param = params[p];
 
-      vFloat[v] = (float)vInt[v] * 0.001f;
-      sink_f = vFloat[v];
-    }
+      param.setInt(i);
+      sink_i = param.getInt();
 
-    // ----- Floats -----
-    for (size_t v = 0; v < VALUE_FLOAT; ++v) {
-      float f = (float)i * 0.001f;
-      vFloat[v] = Micro::clamp<float>(f, vFloatMin[v], vFloatMax[v]);
-      sink_f = vFloat[v];
-
-      vInt[v] = (uint32_t)floor(vFloat[v]);
-      sink_i = vInt[v];
-    }
-
-    // ----- Enums -----
-    for (size_t v = 0; v < VALUE_ENUM; ++v) {
-      vEnum[v] = Micro::modulo(i, vEnumCount[v]);
-      sink_i = vEnum[v];
-
-      vFloat[v] = (float)vEnum[v];
-      sink_f = vFloat[v];
     }
   }
 
-  uint32_t heapAfter = freeHeap();
-  uint32_t stackAfter = stackHighWater();
 
-  r.cycles = cycles() - start;
-  r.heap = freeHeap();
-  r.stack = stackHighWater();
+  return cycles() - start;
+}
+ */
+// READ FASTEST POSSIBLE FROM VARIABLE
+uint32_t benchDirectUse() {
 
-  return r;
+  uint32_t start = cycles();
+
+  for (int i = 0; i < ITERATIONS; ++i) {
+    float f = i;
+    vInt[0] = Micro::clamp<uint32_t>(i,vIntMin[0],vIntMax[0]);
+    sink_i = vInt[0];
+
+    vInt[1] = Micro::clamp<uint32_t>(i,vIntMin[1],vIntMax[1]);
+    sink_i = vInt[1];
+
+    vFloat[0] = Micro::clamp<float>(i,vFloatMin[0],vFloatMax[0]);
+    sink_f = vFloat[0];
+
+    vFloat[1] = Micro::clamp<float>(i,vFloatMin[1],vFloatMax[1]);
+    sink_f = vFloat[1];
+
+    vEnum[0] =  Micro::modulo(i, vEnumCount[0]);
+    sink_i = vEnum[0];
+
+    vEnum[1] = Micro::modulo(i, vEnumCount[1]);
+    sink_i = vEnum[1];
+  
+  }
+
+
+  return cycles() - start;
 }
 
+// ======================= Setup / Loop =======================
 void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  bench(); // warm-up
 }
 
 void loop() {
   delay(5000);
 
-  BenchResult r = bench();
-
-  Serial.println(__FILE__);
-  Serial.print("Cycles: ");
-  Serial.println(r.cycles);
-  Serial.print("Heap : ");
-  Serial.println(r.heap);
-  Serial.print("Stack : ");
-  Serial.println(r.stack);
+  Serial.println(F(__FILE__));
+/*   Serial.print(F("Common Array Cycles: "));
+  Serial.println(benchCommonArray()); */
+  Serial.print(F("Direct Use: ")); 
+  Serial.println(benchDirectUse());
+  Serial.print(F("Heap : "));
+  Serial.println(freeHeap());
+  Serial.print(F("Stack : "));
+  Serial.println(stackHighWater());
   Serial.println();
 }

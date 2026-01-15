@@ -6,24 +6,105 @@
 struct MicroInt {
   int32_t value;
   const int32_t min, max;
-  void set(int32_t v) { value = Micro::clamp(v, min, max); }
-  int32_t get() const { return value;};
+
+  // Constructor
+  constexpr MicroInt(int32_t v, int32_t min_, int32_t max_)
+    : value(v), min(min_), max(max_)
+  {
+    value = Micro::clamp(value, min, max);
+  }
+
+  // Assignment from raw value → calls set()
+  MicroInt& operator=(int32_t v) {
+    value = Micro::clamp(v, min, max);
+    return *this;
+  }
+
+  // Implicit conversion to int32_t → calls get()
+  operator int32_t() const {
+    return value;
+  }
+
+  // Optional explicit API
+  void set(int32_t v) {
+    value = Micro::clamp(v, min, max);
+  }
+
+  int32_t get() const {
+    return value;
+  }
 };
+
 
 struct MicroFloat {
   float value;
   const float min, max;
-  void set(float v) { value = Micro::clamp(v, min, max); }
-  float get() const { return value;};
+
+  constexpr MicroFloat(float v, float min_, float max_)
+    : value(v), min(min_), max(max_)
+  {
+    value = Micro::clamp(value, min, max);
+  }
+
+  MicroFloat& operator=(float v) {
+    value = Micro::clamp(v, min, max);
+    return *this;
+  }
+
+  operator float() const {
+    return value;
+  }
+
+  void set(float v) {
+    value = Micro::clamp(v, min, max);
+  }
+
+  float get() const {
+    return value;
+  }
 };
+
 
 struct MicroEnum {
   int32_t value;
   const int32_t count;
   const char **labels;
-  void set(int32_t v) { value = Micro::modulo(v, count); }
-  int32_t get() const { return value;};
+
+  // Constructor
+  constexpr MicroEnum(int32_t v, int32_t count_, const char **labels_)
+    : value(v), count(count_), labels(labels_)
+  {
+    value = Micro::modulo(value, count);
+  }
+
+  // Assignment operator → sets the value with modulo
+  MicroEnum& operator=(int32_t v) {
+    value = Micro::modulo(v, count);
+    return *this;
+  }
+
+  // Explicit set method
+  void set(int32_t v) {
+    value = Micro::modulo(v, count);
+  }
+
+  // Explicit get method
+  int32_t get() const {
+    return value;
+  }
+
+  // Implicit conversion to int32_t
+  operator int32_t() const {
+    return value;
+  }
+
+  // Get the label string
+  const char* label() const {
+    return labels ? labels[value] : nullptr;
+  }
 };
+
+
 
 // ======================= MicroParam =======================
 struct MicroParam {
@@ -173,23 +254,23 @@ uint32_t benchDirectUse() {
   for (int i = 0; i < ITERATIONS; ++i) {
     float f = i;
    
-     i1.set(i);
-    sink_i = i1.get();
+     i1 = i; 
+    sink_i = i1;
 
-    i2.set(i);
-    sink_i = i2.get();
+    i2 = i;
+    sink_i = i2;
 
-    f1.set(f);
-    sink_f = f1.get();
+    f1 = f;
+    sink_f = f1;
 
-    f2.set(f);
-    sink_f = f2.get();
+    f2 = f;
+    sink_f = f2;
 
-    e1.set(i);
-    sink_i = e1.get();
+    e1 = i;
+    sink_i = e1;
 
-    e2.set(i);
-    sink_i = e2.get(); 
+    e2 = 1;
+    sink_i = e2; 
     
   }
 
