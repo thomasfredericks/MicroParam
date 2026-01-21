@@ -67,7 +67,7 @@ constexpr size_t PARAM_COUNT = sizeof(params) / sizeof(params[0]);
 | Virtual  | 89.348789           | 36.339528           | 336288    |
 | Pointer  | 107.20746           | 74.090209           | 336216    |
 
-Note that the previous **real world ** tests differ from ChatGPT approximations that were the following :
+Note that the previous **real world** tests differ from ChatGPT approximations that were the following :
 
 | Model | Relative Speed | Approx. Cost vs Direct | Notes |
 |---------:|---------------:|-----------------------:|-------|
