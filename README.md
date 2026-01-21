@@ -6,202 +6,30 @@ Micro (small, simple and lightweight) library to manage parameters.
 > The project is currently highly a work in progress. 
 > The API might change between releases.
 
-## Design Philosophy 
+## Design Goals and Philosophy 
 
-### Why Paramers Do Not Have Names
+### Fast
 
-Parameters in MicroParam do not carry names internally. This design is intentional for several reasons:
-- Memory Efficiency – By omitting names, each parameter uses less memory. This is especially important in embedded or resource-constrained environments.
-- Performance – Operations on unnamed parameters (e.g., setting, getting, mapping) are faster since there is no need to manage string data or perform lookups by name.
+Reading and writing of parameter values should be done very fast. This should ideally be as fast as direct manipulation of variables without the parameter library. Therefore, the use of this library should not impact the speed of internal code. An integer or a float in code could be replaced by a parameter without any drawback.
+
+### Lightweight
+
+Parameters should not carry string names internally for several reasons:
+- Memory Efficiency – By omitting names, each parameter uses less memory. 
 - Controlled Exposure – Names are only needed when parameters are exposed externally (e.g., via bindings). This allows you to selectively expose only the parameters you want, keeping internal data private and clean.
 
-Names are only assigned **when binding parameters** (using `MicroParamBind` or `MicroParamBinder`) because that is the only time they are needed—for external interfaces, UI exposure, or network interaction. Internal operations remain fast and lightweight, without the overhead of storing or searching names.
+Names should only be assigned **when binding parameters** because that is the only time they are needed—for external interfaces, UI exposure, or network interaction. Internal operations must remain fast and lightweight, without the overhead of storing or searching names.
 
-## Structs and Classes
 
-### MicroParam
-Base class for parameter types. Represents a generic parameter with integer and float interfaces.
+## Tests
 
-#### Constructors
+The determine the ideal architecture, 4 scenarios where tested:
 
-```cpp
-MicroParam myMicroParam(type);
-```
-Creates a parameter with a specific type.
+- `Direct`: Direct manipulation of variables. This is the baseline for reading and accessing variables but it does not test binding. Obvisouly, raw variables do not share a common interface.
+- `Virtual`: Parameters are defined as classes with virtual functions that distinguish each data type. All parameters share a common interface.
+- `Pointer`: A generic class uses custom function pointers for each data type. All parameters share a common interface.
+- `Uniqe`: There are unique classes for each data type. Only when binding can a common interface be accessed.
+- `Overload`: A variation of `Unique` but with overloads for the `=` operator.
 
-- Parameters:
-  - `type`: Character representing the parameter type (`char`)
+### Results
 
-### MicroParamInt
-Integer parameter with minimum and maximum bounds.
-
-#### Constructors
-
-```cpp
-MicroParamInt myMicroParamInt(initial, min, max);
-```
-Creates an integer parameter with an initial value and bounds.
-
-- Parameters:
-  - `initial`: Initial value (`int32_t`)
-  - `min`: Minimum allowed value (`int32_t`)
-  - `max`: Maximum allowed value (`int32_t`)
-
-#### Method `setInt(i);`
-
-```cpp
-myMicroParamInt.setInt(i);
-```
-Sets the integer value, clamped to the minimum and maximum.
-
-- Parameters:
-  - `i`: Value to set (`int32_t`)
-
-#### Method `getInt();`
-
-```cpp
-int32_t value = myMicroParamInt.getInt();
-```
-Gets the current integer value.
-
-- Returns:
-  - Current value (`int32_t`)
-
-#### Method `setFloat(f);`
-
-```cpp
-myMicroParamInt.setFloat(f);
-```
-Sets the parameter from a float by flooring the value and clamping it.
-
-- Parameters:
-  - `f`: Float value to set (`float`)
-
-#### Method `getFloat();`
-
-```cpp
-float value = myMicroParamInt.getFloat();
-```
-Gets the current value as a float.
-
-- Returns:
-  - Current value (`float`)
-
-#### Method `mapFloat(in, inMin, inMax);`
-
-```cpp
-myMicroParamInt.mapFloat(in, inMin, inMax);
-```
-Maps a float input from a source range to the parameter's integer range.
-
-- Parameters:
-  - `in`: Input value (`float`)
-  - `inMin`: Minimum of input range (`float`)
-  - `inMax`: Maximum of input range (`float`)
-
-#### Method `mapInt(in, inMin, inMax);`
-
-```cpp
-myMicroParamInt.mapInt(in, inMin, inMax);
-```
-Maps an integer input from a source range to the parameter's integer range.
-
-- Parameters:
-  - `in`: Input value (`int32_t`)
-  - `inMin`: Minimum of input range (`int32_t`)
-  - `inMax`: Maximum of input range (`int32_t`)
-
-### MicroParamFloat
-Floating-point parameter with minimum and maximum bounds.
-
-#### Constructors
-
-```cpp
-MicroParamFloat myMicroParamFloat(initial, min, max);
-```
-Creates a float parameter with an initial value and bounds.
-
-- Parameters:
-  - `initial`: Initial value (`float`)
-  - `min`: Minimum allowed value (`float`)
-  - `max`: Maximum allowed value (`float`)
-
-#### Method `setFloat(f);`
-
-```cpp
-myMicroParamFloat.setFloat(f);
-```
-Sets the float value, clamped to the minimum and maximum.
-
-- Parameters:
-  - `f`: Value to set (`float`)
-
-#### Method `getFloat();`
-
-```cpp
-float value = myMicroParamFloat.getFloat();
-```
-Gets the current float value.
-
-- Returns:
-  - Current value (`float`)
-
-#### Method `setInt(i);`
-
-```cpp
-myMicroParamFloat.setInt(i);
-```
-Sets the parameter from an integer by converting it to float and clamping.
-
-- Parameters:
-  - `i`: Integer value to set (`int32_t`)
-
-#### Method `getInt();`
-
-```cpp
-int32_t value = myMicroParamFloat.getInt();
-```
-Gets the current value as an integer (floored).
-
-- Returns:
-  - Current value (`int32_t`)
-
-#### Method `mapFloat(in, inMin, inMax);`
-
-```cpp
-myMicroParamFloat.mapFloat(in, inMin, inMax);
-```
-Maps a float input from a source range to the parameter's float range.
-
-- Parameters:
-  - `in`: Input value (`float`)
-  - `inMin`: Minimum of input range (`float`)
-  - `inMax`: Maximum of input range (`float`)
-
-#### Method `mapInt(in, inMin, inMax);`
-
-```cpp
-myMicroParamFloat.mapInt(in, inMin, inMax);
-```
-Maps an integer input from a source range to the parameter's float range.
-
-- Parameters:
-  - `in`: Input value (`int32_t`)
-  - `inMin`: Minimum of input range (`int32_t`)
-  - `inMax`: Maximum of input range (`int32_t`)
-
-### MicroParamBind
-Type alias for `Micro::Bind<MicroParam *>`.
-
-Example usage:
-```cpp
-MicroParamBind bindings[] = { {"/param1", &param1}, {"/param2", &param2} };
-```
-
-### MicroParamBinder
-Type alias for `Micro::Binder<MicroParam *>`.
-
-Example usage:
-```cpp
-MicroParamBinder binder(bindings, sizeof(bindings) / sizeof(MicroParamBind));
-```

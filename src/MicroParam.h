@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <MicroCommon.h>
 
-class MicroParam
+/* class MicroParam
 {
 
 protected:
@@ -186,18 +186,9 @@ public:
 typedef Micro::Bind<MicroParam *> MicroParamBind;
 
 // Example use MicroParamBinder binder(bindings, sizeof(bindings) / sizeof(MicroParamBind));
-typedef Micro::Binder<MicroParam *> MicroParamBinder;
+typedef Micro::Binder<MicroParam *> MicroParamBinder; */
 
-/* class MicroParamBinder : public Micro::Binder<MicroParam*> {
-public:
-    using Micro::Binder<MicroParam*>::Binder;
-    void printConfig(size_t index, Stream * stream) {
-            sttream->print(binder.getKey(i));
-            stream->pprint(' ');
-            getPointer(i)->printConfig(stream);
-            stream->println();
-    }
-}; */
+
 
 
 
