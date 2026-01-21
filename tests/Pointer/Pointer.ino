@@ -152,93 +152,102 @@ public:
 // =================================================================================
 
 const char* labels[3] = { "A", "B", "C" };
-MicroValueNB vInt   = MicroValueNB::Int(5, 0, 127);
-MicroValueNB vFloat = MicroValueNB::Float(0.5f, 0.0f, 1.0f);
-MicroValueNB vEnum  = MicroValueNB::Enum(labels, 0, 3);
-MicroValueNB vInt1   = MicroValueNB::Int(5, 0, 127);
-MicroValueNB vFloat1 = MicroValueNB::Float(0.5f, 0.0f, 1.0f);
-MicroValueNB vEnum1  = MicroValueNB::Enum(labels, 0, 3);
+MicroValueNB i1   = MicroValueNB::Int(5, 0, 127);
+MicroValueNB f1 = MicroValueNB::Float(0.5f, 0.0f, 1.0f);
+MicroValueNB e1  = MicroValueNB::Enum(labels, 0, 3);
+MicroValueNB i2   = MicroValueNB::Int(5, 0, 127);
+MicroValueNB f2 = MicroValueNB::Float(0.5f, 0.0f, 1.0f);
+MicroValueNB e2  = MicroValueNB::Enum(labels, 0, 3);
 
-MicroValueNB *values[] = { &vInt, &vFloat , &vEnum, &vInt1, &vFloat1 , &vEnum1  };
-constexpr size_t VALUE_COUNT = sizeof(values) / sizeof(values[0]);
+MicroValueNB *params[] = { &i1, &f1 , &e1, &i2, &f2 , &e2  };
+constexpr size_t PARAM_COUNT = sizeof(params) / sizeof(params[0]);
 
 // =================================================================================
 
+// ======================= Benchmark =======================
 #define ITERATIONS 200000
 
-struct BenchResult {
-  uint32_t cycles;
-  uint32_t heap;
-  uint32_t stack;
-};
-
 volatile int32_t sink_i;
-volatile float   sink_f;
+volatile float sink_f;
 
-static inline uint32_t cycles()
-{
-  return ESP.getCycleCount();
-}
 
-uint32_t freeHeap()
-{
-  return ESP.getFreeHeap();
-}
-
-uint32_t stackHighWater()
-{
+static inline uint32_t cycles() { return ESP.getCycleCount(); }
+uint32_t freeHeap() { return ESP.getFreeHeap(); }
+uint32_t stackHighWater() {
   return uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t);
 }
 
+// ---------------------- Benchmark ----------------------
+// READ FROM COMMON ARRAY AND ASSIGN INT (TO FLOAT OR ENUM)
+uint32_t benchCommonArray() {
 
-// ---------- Bench ----------
-
-
-BenchResult bench(MicroValueNB **values, size_t count)
-{
-  BenchResult r;
 
   uint32_t start = cycles();
 
   for (int i = 0; i < ITERATIONS; ++i) {
-    for (size_t v = 0; v < count; ++v) {
-      values[v]->setInt(i);
-      sink_i = values[v]->getInt();
+    for (size_t p = 0; p < PARAM_COUNT; ++p) {
+      MicroValueNB * param = params[p];
 
-      values[v]->setFloat((float)i * 0.001f);
-      sink_f = values[v]->getFloat();
+      param->setInt(i);
+      sink_i = param->getInt();
+
     }
   }
 
-  r.cycles = cycles() - start;
 
-  uint32_t heapAfter  = freeHeap();
-  uint32_t stackAfter = stackHighWater();
-
-  r.heap  = freeHeap();
-  r.stack = stackHighWater();
-
-  return r;
+  return cycles() - start;
 }
 
-void setup()
-{
+// READ FASTEST POSSIBLE FROM VARIABLE
+uint32_t benchDirectUse() {
+
+  uint32_t start = cycles();
+
+  for (int i = 0; i < ITERATIONS; ++i) {
+    float f = i;
+   
+      i1.setInt(i);
+    sink_i = i1.getInt();
+
+    i2.setInt(i);
+    sink_i = i2.getInt();
+
+    f1.setFloat(f);
+    sink_f = f1.getFloat();
+
+    f2.setFloat(f);
+    sink_f = f2.getFloat();
+
+    e1.setInt(i);
+    sink_i = e1.getInt();
+
+    e2.setInt(i);
+    sink_i = e2.getInt(); 
+    
+  }
+
+
+  return cycles() - start;
+}
+
+// ======================= Setup / Loop =======================
+void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  bench(values, VALUE_COUNT); // warm-up
 }
 
-void loop()
-{
+void loop() {
   delay(5000);
 
-  BenchResult r = bench(values, VALUE_COUNT);
-
-  Serial.println(__FILE__);
-  Serial.print("Cycles: "); Serial.println(r.cycles);
-  Serial.print("Heap : "); Serial.println(r.heap);
-  Serial.print("Stack : "); Serial.println(r.stack);
-  Serial.print("sizeof(MicroValueNB): "); Serial.println(sizeof(MicroValueNB));
+  Serial.println(F(__FILE__));
+  Serial.print(F("Common Array Cycles: "));
+  Serial.println(benchCommonArray());
+  Serial.print(F("Direct Use: ")); 
+  Serial.println(benchDirectUse());
+  Serial.print(F("Heap : "));
+  Serial.println(freeHeap());
+  Serial.print(F("Stack : "));
+  Serial.println(stackHighWater());
   Serial.println();
 }

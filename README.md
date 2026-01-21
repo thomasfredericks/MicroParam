@@ -31,5 +31,19 @@ The determine the ideal architecture, 4 scenarios where tested:
 - `Uniqe`: There are unique classes for each data type. Only when binding can a common interface be accessed.
 - `Overload`: A variation of `Unique` but with overloads for the `=` operator.
 
+
+Two types of test where conducted :
+- The internal test involved reading and changing the value of a paramater by accessing the paramater directly.
+- The external test involved reading and changing the value of a paramater by accessing the paramater through a binding object that grouped them.
+- A total of 200000 iterations was done for each.
+
 ### Results
+
+| Test | External (M Cycles) | Internal (M Cycles) | Heap left | 
+| --- | --- | --- | --- |
+| Direct   | N/A                 | 9.435226 | 336408    |
+| Overload | 37.338829           | 14.854615| 336280    |
+| Unique   | 49.98629            | 27.50039 | 336288    |
+| Virtual  | 89.348789           | 36.339528| 336288    |
+| Pointer  | 107.20746           | 74.090209| 336216    |
 
