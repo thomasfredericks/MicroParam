@@ -20,9 +20,11 @@ Parameters should not carry string names internally for several reasons:
 
 Names should only be assigned **when binding parameters**, because that is the only time they are needed—for external interfaces, UI exposure, or network interaction. Internal operations must remain fast and lightweight, without the overhead of storing or searching names.
 
+
+
 ## Tests
 
-To determine the ideal architecture, four scenarios were tested:
+To determine the ideal architecture, five models were tested:
 
 - **`Direct`**: Direct manipulation of variables. This is the baseline for reading and writing values, but it does not test binding. Obviously, raw variables do not share a common interface.
 - **`Virtual`**: Parameters are defined as classes with virtual functions that distinguish each data type. All parameters share a common interface.
@@ -36,9 +38,28 @@ Two types of tests were conducted:
 - A total of **200,000 iterations** were performed for each test.
 - Each test involved **six parameters**: two integers, two floats, and two enums.
 
+Here was how most of the models created the parameters:
+```cpp
+// ---------------------- Values ----------------------
+const char* labels[3] = { "A", "B", "C" };
+MicroInt i1{5, 0, 127};
+MicroInt i2{10, 0, 127};
+MicroFloat f1{0.5f, 0.0f, 1.0f};
+MicroFloat f2{0.25f, 0.0f, 1.0f};
+MicroEnum e1{0, 3, labels};
+MicroEnum e2{0, 3, labels};
+
+
+MicroParam params[] = {MicroParam::bind("i1", i1), MicroParam::bind("i2", i2),
+                       MicroParam::bind("f1", f1), MicroParam::bind("f2", f2),
+                       MicroParam::bind("e1", e1), MicroParam::bind("e2", e2)};
+
+constexpr size_t PARAM_COUNT = sizeof(params) / sizeof(params[0]);
+```
+
 ### Results
 
-| Test     | External (M Cycles) | Internal (M Cycles) | Heap left |
+| Model     | External (M Cycles) | Internal (M Cycles) | Heap left |
 |----------|---------------------|---------------------|-----------|
 | Direct   | N/A                 | 9.435226            | 336408    |
 | Overload | 37.338829           | 14.854615           | 336280    |
@@ -46,9 +67,9 @@ Two types of tests were conducted:
 | Virtual  | 89.348789           | 36.339528           | 336288    |
 | Pointer  | 107.20746           | 74.090209           | 336216    |
 
-Note that the previous real world tests differ from ChatGPT approximations that were the following :
+Note that the previous **real world ** tests differ from ChatGPT approximations that were the following :
 
-| Test | Relative Speed | Approx. Cost vs Direct | Notes |
+| Model | Relative Speed | Approx. Cost vs Direct | Notes |
 |---------:|---------------:|-----------------------:|-------|
 | Direct   | 100%           | 1.0×                   | Raw variable access |
 | Unique   | ~98–100%       | ~1.0–1.02×             | Optimizes to direct access |
