@@ -57,6 +57,8 @@ MicroParam params[] = {MicroParam::bind("i1", i1), MicroParam::bind("i2", i2),
 constexpr size_t PARAM_COUNT = sizeof(params) / sizeof(params[0]);
 ```
 
+The test code can be found in the `tests` folder.
+
 ### Results
 
 | Model     | External (M Cycles) | Internal (M Cycles) | Heap left |
