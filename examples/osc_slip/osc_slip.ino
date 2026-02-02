@@ -1,3 +1,13 @@
+/*
+| Command                                           | Description                                                                  | Example                                  |
+| ------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------- |
+| `microParamOscDispatch(msg, inputs, inputsCount)` | Update local parameters from received OSC messages. Returns true if handled. | `/input/a 42` → sets `input_a = 42`      |
+| `receivedOscMessage.checkOscAddress("/?")`        | "Query" for current parameter values.                                        | `/?"` → triggers sending all inputs back |
+| `microParamOscSend(myOsc, inputs, inputsCount)`   | Send the current values of input parameters via OSC (when queried).          | `/input/a 2`, `/input/b 400`             |
+| `microParamOscSend(myOsc, outputs, outputsCount)` | Send the current values of output parameters via OSC.                        | `/output/value 127`                      |
+*/
+
+
 
 #include <Arduino.h>
 #include <MicroParam.h>
