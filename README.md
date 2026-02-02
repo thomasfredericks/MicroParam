@@ -65,7 +65,11 @@ Names should only be assigned **when binding parameters**, because that is the o
 | Constructor `MicroParamBind(k, v)` | Creates a binding between a key and a variable of type `MicroParamInt`, `MicroParamFloat`, or `MicroParamEnum`. `k` (`const char *`) is the key string, `v` (`MicroParamInt &`, `MicroParamFloat &`, or `MicroParamEnum &`) is the variable to bind. | — |
 | `getType()` | Retrieves the type of the bound variable. | Type (`MicroParamBind::Type`) |
 | `getKey()` | Retrieves the key string. | Key (`const char *`) |
-| `checkKey(k)` | Checks if the key matches the provided string. `k` (`const char *`) is the key string to check. | True*
+| `checkKey(k)` | Checks if the key matches the provided string. `k` (`const char *`) is the key string to check. | True if keys match (`bool`) |
+| `setInt(v)` | Sets the value of the bound variable as an integer. `v` (`int32_t`) is the new value. | — |
+| `getInt()` | Retrieves the bound variable as an integer. | Value as integer (`int32_t`) |
+| `setFloat(v)` | Sets the value of the bound variable as a float. `v` (`float`) is the new value. | — |
+| `getFloat()` | Retrieves the bound variable as a float. | Value as float (`float`) |
 
 
 ## Tests
