@@ -42,12 +42,12 @@ Here was how most of the models created the parameters:
 ```cpp
 // ---------------------- Values ----------------------
 const char* labels[3] = { "A", "B", "C" };
-MicroInt i1{5, 0, 127};
-MicroInt i2{10, 0, 127};
-MicroFloat f1{0.5f, 0.0f, 1.0f};
-MicroFloat f2{0.25f, 0.0f, 1.0f};
-MicroEnum e1{0, 3, labels};
-MicroEnum e2{0, 3, labels};
+MicroParamInt i1{5, 0, 127};
+MicroParamInt i2{10, 0, 127};
+MicroParamFloat f1{0.5f, 0.0f, 1.0f};
+MicroParamFloat f2{0.25f, 0.0f, 1.0f};
+MicroParamEnum e1{0, 3, labels};
+MicroParamEnum e2{0, 3, labels};
 
 
 MicroParam params[] = {MicroParam::bind("i1", i1), MicroParam::bind("i2", i2),

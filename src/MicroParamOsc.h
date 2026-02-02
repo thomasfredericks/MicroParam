@@ -2,7 +2,7 @@
 #include <MicroOsc.h>
 
 
-    bool microParamOscDispatch(MicroOscMessage &message, MicroBind &binding)
+    bool microParamOscDispatch(MicroOscMessage &message, MicroParamBind &binding)
     {
 
         if (binding.checkKey(message.getOscAddress()))
@@ -24,12 +24,12 @@
         return false;
     };  
 
-    bool microParamOscDispatch(MicroOscMessage &message, MicroBind *bindings, size_t bindingsCount)
+    bool microParamOscDispatch(MicroOscMessage &message, MicroParamBind *bindings, size_t bindingsCount)
     {
 
         for (size_t p = 0; p < bindingsCount; ++p)
         {
-            MicroBind &binding = bindings[p];
+            MicroParamBind &binding = bindings[p];
 
             if ( microParamOscDispatch (message, binding) )
             {
@@ -39,7 +39,7 @@
         return false;
     };
 
-    void microParamOscSend(MicroOsc &osc, MicroBind &binding)
+    void microParamOscSend(MicroOsc &osc, MicroParamBind &binding)
     {
         const char *key = binding.getKey();
 
@@ -55,11 +55,11 @@
         }
     };
 
-    void microParamOscSend(MicroOsc &osc, MicroBind *bindings, size_t bindingsCount)
+    void microParamOscSend(MicroOsc &osc, MicroParamBind *bindings, size_t bindingsCount)
     {
         for (size_t p = 0; p < bindingsCount; ++p)
         {
-            MicroBind &binding = bindings[p];
+            MicroParamBind &binding = bindings[p];
             microParamOscSend(osc, binding);
         };
     };

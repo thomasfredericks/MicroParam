@@ -3,19 +3,19 @@
 
 
 // ======================= Base types =======================
-struct MicroInt {
+struct MicroParamInt {
   int32_t value;
   const int32_t min, max;
 
   // Constructor
-  constexpr MicroInt(int32_t v, int32_t min_, int32_t max_)
+  constexpr MicroParamInt(int32_t v, int32_t min_, int32_t max_)
     : value(v), min(min_), max(max_)
   {
     value = microClamp(value, min, max);
   }
 
   // Assignment from raw value → calls set()
-  MicroInt& operator=(int32_t v) {
+  MicroParamInt& operator=(int32_t v) {
     value = microClamp(v, min, max);
     return *this;
   }
@@ -36,17 +36,17 @@ struct MicroInt {
 };
 
 
-struct MicroFloat {
+struct MicroParamFloat {
   float value;
   const float min, max;
 
-  constexpr MicroFloat(float v, float min_, float max_)
+  constexpr MicroParamFloat(float v, float min_, float max_)
     : value(v), min(min_), max(max_)
   {
     value = microClamp(value, min, max);
   }
 
-  MicroFloat& operator=(float v) {
+  MicroParamFloat& operator=(float v) {
     value = microClamp(v, min, max);
     return *this;
   }
@@ -65,20 +65,20 @@ struct MicroFloat {
 };
 
 
-struct MicroEnum {
+struct MicroParamEnum {
   int32_t value;
   const int32_t count;
   const char **labels;
 
   // Constructor
-  constexpr MicroEnum(int32_t v, int32_t count_, const char **labels_)
+  constexpr MicroParamEnum(int32_t v, int32_t count_, const char **labels_)
     : value(v), count(count_), labels(labels_)
   {
     value = microModulo(value, count);
   }
 
   // Assignment operator → sets the value with modulo
-  MicroEnum& operator=(int32_t v) {
+  MicroParamEnum& operator=(int32_t v) {
     value = microModulo(v, count);
     return *this;
   }
@@ -112,13 +112,13 @@ struct MicroParam {
   const char *key;
 
   union {
-    MicroInt *i;
-    MicroFloat *f;
-    MicroEnum *e;
+    MicroParamInt *i;
+    MicroParamFloat *f;
+    MicroParamEnum *e;
   } ptr;
 
   // --------- Constructors ---------
-  static MicroParam bind(const char *k, MicroInt &v) {
+  static MicroParam bind(const char *k, MicroParamInt &v) {
     MicroParam p;
     p.type = INT;
     p.key = k;
@@ -126,7 +126,7 @@ struct MicroParam {
     return p;
   }
 
-  static MicroParam bind(const char *k, MicroFloat &v) {
+  static MicroParam bind(const char *k, MicroParamFloat &v) {
     MicroParam p;
     p.type = FLOAT;
     p.key = k;
@@ -134,7 +134,7 @@ struct MicroParam {
     return p;
   }
 
-  static MicroParam bind(const char *k, MicroEnum &v) {
+  static MicroParam bind(const char *k, MicroParamEnum &v) {
     MicroParam p;
     p.type = ENUM;
     p.key = k;
@@ -198,12 +198,12 @@ struct MicroParam {
 
 // ---------------------- Values ----------------------
 const char* labels[3] = { "A", "B", "C" };
-MicroInt i1{5, 0, 127};
-MicroInt i2{10, 0, 127};
-MicroFloat f1{0.5f, 0.0f, 1.0f};
-MicroFloat f2{0.25f, 0.0f, 1.0f};
-MicroEnum e1{0, 3, labels};
-MicroEnum e2{0, 3, labels};
+MicroParamInt i1{5, 0, 127};
+MicroParamInt i2{10, 0, 127};
+MicroParamFloat f1{0.5f, 0.0f, 1.0f};
+MicroParamFloat f2{0.25f, 0.0f, 1.0f};
+MicroParamEnum e1{0, 3, labels};
+MicroParamEnum e2{0, 3, labels};
 
 
 MicroParam params[] = {MicroParam::bind("i1", i1), MicroParam::bind("i2", i2),

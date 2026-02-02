@@ -5,21 +5,21 @@
 
 
 // ======================= Base types =======================
-struct MicroInt {
+struct MicroParamInt {
     int32_t value;
     int32_t min, max;
     void set(int32_t v) { value = microClamp(v, min, max); }
     int32_t get() { return value};
 };
 
-struct MicroFloat {
+struct MicroParamFloat {
     float value;
     float min, max;
     void set(float v) { value = microClamp(v, min, max); }
     float get() { return value};
 };
 
-struct MicroEnum {
+struct MicroParamEnum {
     int32_t value;
     int32_t count;
     char ** labels;
@@ -33,13 +33,13 @@ struct MicroParam {
     const char *key;
 
     union {
-        MicroInt   *i;
-        MicroFloat *f;
-        MicroEnum  *e;
+        MicroParamInt   *i;
+        MicroParamFloat *f;
+        MicroParamEnum  *e;
     } ptr;
 
     // Overloaded bind constructors
-    static MicroParam bind(const char *k, MicroInt &v) {
+    static MicroParam bind(const char *k, MicroParamInt &v) {
         MicroParam p;
         p.type = INT;
         p.key  = k;
@@ -47,7 +47,7 @@ struct MicroParam {
         return p;
     }
 
-    static MicroParam bind(const char *k, MicroFloat &v) {
+    static MicroParam bind(const char *k, MicroParamFloat &v) {
         MicroParam p;
         p.type = FLOAT;
         p.key  = k;
@@ -55,7 +55,7 @@ struct MicroParam {
         return p;
     }
 
-    static MicroParam bind(const char *k, MicroEnum &v) {
+    static MicroParam bind(const char *k, MicroParamEnum &v) {
         MicroParam p;
         p.type = ENUM;
         p.key  = k;
@@ -100,12 +100,12 @@ struct MicroParam {
 };
 
 // ---------------------- Values ----------------------
-MicroInt   i1{5, 0, 127};
-MicroInt   i2{10, 0, 127};
-MicroFloat f1{0.5f, 0.0f, 1.0f};
-MicroFloat f2{0.25f, 0.0f, 1.0f};
-MicroEnum  e1{0, 3};
-MicroEnum  e2{1, 3};
+MicroParamInt   i1{5, 0, 127};
+MicroParamInt   i2{10, 0, 127};
+MicroParamFloat f1{0.5f, 0.0f, 1.0f};
+MicroParamFloat f2{0.25f, 0.0f, 1.0f};
+MicroParamEnum  e1{0, 3};
+MicroParamEnum  e2{1, 3};
 
 // Array of MicroParam bindings
 MicroParam values[] = {
@@ -170,12 +170,12 @@ uint32_t benchDirectUse() {
       i1.set(i);
       sink_i = i1.
 
-        MicroInt   i1{5, 0, 127};
-MicroInt   i2{10, 0, 127};
-MicroFloat f1{0.5f, 0.0f, 1.0f};
-MicroFloat f2{0.25f, 0.0f, 1.0f};
-MicroEnum  e1{0, 3};
-MicroEnum  e2{1, 3};
+        MicroParamInt   i1{5, 0, 127};
+MicroParamInt   i2{10, 0, 127};
+MicroParamFloat f1{0.5f, 0.0f, 1.0f};
+MicroParamFloat f2{0.25f, 0.0f, 1.0f};
+MicroParamEnum  e1{0, 3};
+MicroParamEnum  e2{1, 3};
     }
 
     return cycles() - start;

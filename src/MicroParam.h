@@ -7,19 +7,19 @@
 
 
 // ======================= Base types =======================
-struct MicroInt {
+struct MicroParamInt {
   int32_t value;
   const int32_t min, max;
 
   // Constructor
-  constexpr MicroInt(int32_t v, int32_t min_, int32_t max_)
+  constexpr MicroParamInt(int32_t v, int32_t min_, int32_t max_)
     : value(v), min(min_), max(max_)
   {
     value = microClamp<int32_t>(value, min, max);
   }
 
   // Assignment from raw value → calls set()
-  MicroInt& operator=(int32_t v) {
+  MicroParamInt& operator=(int32_t v) {
     value = microClamp<int32_t>(v, min, max);
     return *this;
   }
@@ -34,27 +34,27 @@ struct MicroInt {
   int32_t get() const { return value; }
  
   // Prefix increment: ++x
-  MicroInt& operator++() {
+  MicroParamInt& operator++() {
     set(value + 1);
     return *this;
   }
 
   // Postfix increment: x++
-  MicroInt operator++(int) {
-    MicroInt temp = *this;
+  MicroParamInt operator++(int) {
+    MicroParamInt temp = *this;
     set(value + 1);
     return temp;
   }
 
   // Prefix decrement: --x
-  MicroInt& operator--() {
+  MicroParamInt& operator--() {
     set(value - 1);
     return *this;
   }
 
   // Postfix decrement: x--
-  MicroInt operator--(int) {
-    MicroInt temp = *this;
+  MicroParamInt operator--(int) {
+    MicroParamInt temp = *this;
     set(value - 1);
     return temp;
   }
@@ -62,17 +62,17 @@ struct MicroInt {
 };
 
 
-struct MicroFloat {
+struct MicroParamFloat {
   float value;
   const float min, max;
 
-  constexpr MicroFloat(float v, float min_, float max_)
+  constexpr MicroParamFloat(float v, float min_, float max_)
     : value(v), min(min_), max(max_)
   {
     value = microClamp<float>(value, min, max);
   }
 
-  MicroFloat& operator=(float v) {
+  MicroParamFloat& operator=(float v) {
     value = microClamp(v, min, max);
     return *this;
   }
@@ -91,20 +91,20 @@ struct MicroFloat {
 };
 
 
-struct MicroEnum {
+struct MicroParamEnum {
   int32_t value;
   const int32_t count;
   const char **labels;
 
   // Constructor
-  constexpr MicroEnum(int32_t v, int32_t count_, const char **labels_)
+  constexpr MicroParamEnum(int32_t v, int32_t count_, const char **labels_)
     : value(v), count(count_), labels(labels_)
   {
     value = microModulo(value, count);
   }
 
   // Assignment operator → sets the value with modulo
-  MicroEnum& operator=(int32_t v) {
+  MicroParamEnum& operator=(int32_t v) {
     value = microModulo(v, count);
     return *this;
   }
@@ -131,32 +131,32 @@ struct MicroEnum {
 };
 
 
-// ======================= MicroBind =======================
-class MicroBind {
+// ======================= MicroParamBind =======================
+class MicroParamBind {
   private:
   enum Type : uint8_t { INT = 'i' , FLOAT = 'f', ENUM = 'e' } type;
   const char *key;
   
 
   union {
-    MicroInt   *i;
-    MicroFloat *f;
-    MicroEnum  *e;
+    MicroParamInt   *i;
+    MicroParamFloat *f;
+    MicroParamEnum  *e;
   } ptr;
 
   public:
   // --------- Constructors ---------
-  MicroBind(const char *k, MicroInt &v)
+  MicroParamBind(const char *k, MicroParamInt &v)
       : type(INT), key(k) {
     ptr.i = &v;
   }
 
-  MicroBind(const char *k, MicroFloat &v)
+  MicroParamBind(const char *k, MicroParamFloat &v)
       : type(FLOAT), key(k) {
     ptr.f = &v;
   }
 
-  MicroBind(const char *k, MicroEnum &v)
+  MicroParamBind(const char *k, MicroParamEnum &v)
       : type(ENUM), key(k) {
     ptr.e = &v;
   }
