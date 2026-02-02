@@ -20,6 +20,241 @@ Parameters should not carry string names internally for several reasons:
 
 Names should only be assigned **when binding parameters**, because that is the only time they are needed—for external interfaces, UI exposure, or network interaction. Internal operations must remain fast and lightweight, without the overhead of storing or searching names.
 
+## Structs and Classes
+
+### `MicroParamInt`
+Represents an integer value constrained within a fixed range.
+
+#### Constructors
+
+```cpp
+MicroParamInt myMicroParamInt(v, min_, max_);
+```
+Initializes a `MicroParamInt` with a value clamped to `[min_, max_]`.
+
+- Parameters:
+  - `v`: Initial value (`int32_t`)
+  - `min_`: Minimum value (`int32_t`)
+  - `max_`: Maximum value (`int32_t`)
+
+#### Method `set(v);`
+```cpp
+myMicroParamInt.set(v);
+```
+Sets the value, clamped to `[min, max]`.
+
+- Parameters:
+  - `v`: New value (`int32_t`)
+
+#### Method `get();`
+```cpp
+int32_t value = myMicroParamInt.get();
+```
+Retrieves the current value.
+
+- Returns:
+  - Current value (`int32_t`)
+
+#### Operators
+- Assignment from `int32_t`:
+```cpp
+myMicroParamInt = v;
+```
+Sets the value clamped to the range.
+
+- Conversion to `int32_t`:
+```cpp
+int32_t value = myMicroParamInt;
+```
+
+- Increment/decrement operators:
+  - Prefix `++x`, postfix `x++`, prefix `--x`, postfix `x--`  
+  All modify the value within the valid range.
+
+---
+
+### `MicroParamFloat`
+Represents a floating-point value constrained within a fixed range.
+
+#### Constructors
+
+```cpp
+MicroParamFloat myMicroParamFloat(v, min_, max_);
+```
+Initializes a `MicroParamFloat` with a value clamped to `[min_, max_]`.
+
+- Parameters:
+  - `v`: Initial value (`float`)
+  - `min_`: Minimum value (`float`)
+  - `max_`: Maximum value (`float`)
+
+#### Method `set(v);`
+```cpp
+myMicroParamFloat.set(v);
+```
+Sets the value, clamped to `[min, max]`.
+
+- Parameters:
+  - `v`: New value (`float`)
+
+#### Method `get();`
+```cpp
+float value = myMicroParamFloat.get();
+```
+Retrieves the current value.
+
+- Returns:
+  - Current value (`float`)
+
+#### Operators
+- Assignment from `float`:
+```cpp
+myMicroParamFloat = v;
+```
+Sets the value clamped to the range.
+
+- Conversion to `float`:
+```cpp
+float value = myMicroParamFloat;
+```
+
+---
+
+### `MicroParamEnum`
+Represents an enumerated value with labels, wrapped modulo the number of items.
+
+#### Constructors
+
+```cpp
+MicroParamEnum myMicroParamEnum(v, count_, labels_);
+```
+Initializes an enum value wrapped modulo `count_`.
+
+- Parameters:
+  - `v`: Initial value (`int32_t`)
+  - `count_`: Number of enum items (`int32_t`)
+  - `labels_`: Array of string labels (`const char **`)
+
+#### Method `set(v);`
+```cpp
+myMicroParamEnum.set(v);
+```
+Sets the value wrapped modulo `count`.
+
+- Parameters:
+  - `v`: New value (`int32_t`)
+
+#### Method `get();`
+```cpp
+int32_t value = myMicroParamEnum.get();
+```
+Retrieves the current enum value.
+
+- Returns:
+  - Current value (`int32_t`)
+
+#### Method `label();`
+```cpp
+const char* label = myMicroParamEnum.label();
+```
+Gets the label string corresponding to the current value.
+
+- Returns:
+  - Label string (`const char *`), or `nullptr` if labels are null
+
+#### Operators
+- Assignment from `int32_t`:
+```cpp
+myMicroParamEnum = v;
+```
+Sets the value modulo `count`.
+
+- Conversion to `int32_t`:
+```cpp
+int32_t value = myMicroParamEnum;
+```
+
+---
+
+### `MicroParamBind`
+Binds a `MicroParamInt`, `MicroParamFloat`, or `MicroParamEnum` to a key for generic access.
+
+#### Constructors
+
+```cpp
+MicroParamBind myMicroParamBind(k, v);
+```
+Creates a binding between a key and a variable of type `MicroParamInt`, `MicroParamFloat`, or `MicroParamEnum`.
+
+- Parameters:
+  - `k`: Key string (`const char *`)
+  - `v`: Variable to bind (`MicroParamInt &`, `MicroParamFloat &`, or `MicroParamEnum &`)
+
+#### Method `getType();`
+```cpp
+MicroParamBind::Type type = myMicroParamBind.getType();
+```
+Retrieves the type of the bound variable.
+
+- Returns:
+  - Type (`MicroParamBind::Type`)
+
+#### Method `getKey();`
+```cpp
+const char* key = myMicroParamBind.getKey();
+```
+Retrieves the key string.
+
+- Returns:
+  - Key (`const char *`)
+
+#### Method `checkKey(k);`
+```cpp
+bool match = myMicroParamBind.checkKey(k);
+```
+Checks if the key matches the provided string.
+
+- Parameters:
+  - `k`: Key string to check (`const char *`)
+- Returns:
+  - True if keys match (`bool`)
+
+#### Method `setInt(v);`
+```cpp
+myMicroParamBind.setInt(v);
+```
+Sets the value of the bound variable as an integer.
+
+- Parameters:
+  - `v`: New value (`int32_t`)
+
+#### Method `getInt();`
+```cpp
+int32_t value = myMicroParamBind.getInt();
+```
+Retrieves the bound variable as an integer.
+
+- Returns:
+  - Value as integer (`int32_t`)
+
+#### Method `setFloat(v);`
+```cpp
+myMicroParamBind.setFloat(v);
+```
+Sets the value of the bound variable as a float.
+
+- Parameters:
+  - `v`: New value (`float`)
+
+#### Method `getFloat();`
+```cpp
+float value = myMicroParamBind.getFloat();
+```
+Retrieves the bound variable as a float.
+
+- Returns:
+  - Value as float (`float`)
+
 
 
 ## Tests
