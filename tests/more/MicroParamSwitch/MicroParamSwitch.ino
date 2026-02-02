@@ -91,7 +91,7 @@ public:
   {
     switch (type_) {
       case INT:
-        value_.i = Micro::clamp<int32_t>(v, meta_.i.min, meta_.i.max);
+        value_.i = microClamp<int32_t>(v, meta_.i.min, meta_.i.max);
         break;
 
       case FLOAT:
@@ -99,7 +99,7 @@ public:
         break;
 
       case ENUM:
-        value_.i = Micro::modulo(v, meta_.e.count);
+        value_.i = microModulo(v, meta_.e.count);
         break;
     }
   }
@@ -120,7 +120,7 @@ public:
   {
     switch (type_) {
       case FLOAT:
-        value_.f = Micro::clamp<float>(v, meta_.f.min, meta_.f.max);
+        value_.f = microClamp<float>(v, meta_.f.min, meta_.f.max);
         break;
 
       case INT:
@@ -149,21 +149,21 @@ public:
   {
     switch (type_) {
       case INT: {
-        float mapped = Micro::map<float>(in, inMin, inMax,
+        float mapped = microMap<float>(in, inMin, inMax,
                                          meta_.i.min, meta_.i.max);
         setFloat(mapped);
         break;
       }
 
       case FLOAT: {
-        float mapped = Micro::map<float>(in, inMin, inMax,
+        float mapped = microMap<float>(in, inMin, inMax,
                                          meta_.f.min, meta_.f.max);
         setFloat(mapped);
         break;
       }
 
       case ENUM: {
-        float mapped = Micro::map<float>(in, inMin, inMax,
+        float mapped = microMap<float>(in, inMin, inMax,
                                          0, meta_.e.count - 1);
         setFloat(mapped);
         break;
@@ -175,17 +175,17 @@ public:
   {
     switch (type_) {
       case INT:
-        setInt(Micro::map<int32_t>(in, inMin, inMax,
+        setInt(microMap<int32_t>(in, inMin, inMax,
                                    meta_.i.min, meta_.i.max));
         break;
 
       case FLOAT:
-        setFloat((float)Micro::map<int32_t>(in, inMin, inMax,
+        setFloat((float)microMap<int32_t>(in, inMin, inMax,
                                             meta_.f.min, meta_.f.max));
         break;
 
       case ENUM:
-        setInt(Micro::map<int32_t>(in, inMin, inMax,
+        setInt(microMap<int32_t>(in, inMin, inMax,
                                    0, meta_.e.count - 1));
         break;
     }

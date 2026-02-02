@@ -37,7 +37,7 @@ private:
 public:
   void setInt(int32_t i) override
   {
-    value_ = Micro::clamp<int32_t>(i, min_, max_);
+    value_ = microClamp<int32_t>(i, min_, max_);
   }
 
   int32_t getInt() const override { return value_; }
@@ -51,13 +51,13 @@ public:
 
   void mapFloat(float in, float inMin, float inMax) override
   {
-    float mapped = Micro::map<float>(in, inMin, inMax, min_, max_);
+    float mapped = microMap<float>(in, inMin, inMax, min_, max_);
     setFloat(mapped);
   }
 
   void mapInt(int32_t in, int32_t inMin, int32_t inMax) override
   {
-    setInt(Micro::map<int32_t>(in, inMin, inMax, min_, max_));
+    setInt(microMap<int32_t>(in, inMin, inMax, min_, max_));
   }
 
 
@@ -79,7 +79,7 @@ private:
 public:
   void setFloat(float f) override
   {
-    value_ = Micro::clamp<float>(f, min_, max_);
+    value_ = microClamp<float>(f, min_, max_);
   }
 
   float getFloat() const override { return value_; }
@@ -94,14 +94,14 @@ public:
   void mapFloat(float in, float inMin, float inMax) override
   {
     // Scale to integer range
-    float mapped = Micro::map<float>(in, inMin, inMax, min_, max_);
+    float mapped = microMap<float>(in, inMin, inMax, min_, max_);
 
     setFloat(mapped);
   }
 
   void mapInt(int32_t in, int32_t inMin, int32_t inMax) override
   {
-    setInt(Micro::map<int32_t>(in, inMin, inMax, min_, max_));
+    setInt(microMap<int32_t>(in, inMin, inMax, min_, max_));
   }
 
 
@@ -130,7 +130,7 @@ public:
 
   void setInt(int32_t i) override
   {
-    value_ = Micro::modulo(i, count_);
+    value_ = microModulo(i, count_);
   }
 
   int32_t getInt() const override { return value_; }
@@ -145,7 +145,7 @@ public:
   void mapFloat(float in, float inMin, float inMax) override
   {
     // Scale to integer range
-    float mapped = Micro::map<float>(in, inMin, inMax, 0, count_ - 1);
+    float mapped = microMap<float>(in, inMin, inMax, 0, count_ - 1);
 
     setFloat(mapped);
   }

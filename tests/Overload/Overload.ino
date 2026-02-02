@@ -11,12 +11,12 @@ struct MicroInt {
   constexpr MicroInt(int32_t v, int32_t min_, int32_t max_)
     : value(v), min(min_), max(max_)
   {
-    value = Micro::clamp(value, min, max);
+    value = microClamp(value, min, max);
   }
 
   // Assignment from raw value → calls set()
   MicroInt& operator=(int32_t v) {
-    value = Micro::clamp(v, min, max);
+    value = microClamp(v, min, max);
     return *this;
   }
 
@@ -27,7 +27,7 @@ struct MicroInt {
 
   // Optional explicit API
   void set(int32_t v) {
-    value = Micro::clamp(v, min, max);
+    value = microClamp(v, min, max);
   }
 
   int32_t get() const {
@@ -43,11 +43,11 @@ struct MicroFloat {
   constexpr MicroFloat(float v, float min_, float max_)
     : value(v), min(min_), max(max_)
   {
-    value = Micro::clamp(value, min, max);
+    value = microClamp(value, min, max);
   }
 
   MicroFloat& operator=(float v) {
-    value = Micro::clamp(v, min, max);
+    value = microClamp(v, min, max);
     return *this;
   }
 
@@ -56,7 +56,7 @@ struct MicroFloat {
   }
 
   void set(float v) {
-    value = Micro::clamp(v, min, max);
+    value = microClamp(v, min, max);
   }
 
   float get() const {
@@ -74,18 +74,18 @@ struct MicroEnum {
   constexpr MicroEnum(int32_t v, int32_t count_, const char **labels_)
     : value(v), count(count_), labels(labels_)
   {
-    value = Micro::modulo(value, count);
+    value = microModulo(value, count);
   }
 
   // Assignment operator → sets the value with modulo
   MicroEnum& operator=(int32_t v) {
-    value = Micro::modulo(v, count);
+    value = microModulo(v, count);
     return *this;
   }
 
   // Explicit set method
   void set(int32_t v) {
-    value = Micro::modulo(v, count);
+    value = microModulo(v, count);
   }
 
   // Explicit get method

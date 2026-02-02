@@ -6,14 +6,14 @@
 struct MicroInt {
   int32_t value;
   const int32_t min, max;
-  void set(int32_t v) { value = Micro::clamp(v, min, max); }
+  void set(int32_t v) { value = microClamp(v, min, max); }
   int32_t get() const { return value;};
 };
 
 struct MicroFloat {
   float value;
   const float min, max;
-  void set(float v) { value = Micro::clamp(v, min, max); }
+  void set(float v) { value = microClamp(v, min, max); }
   float get() const { return value;};
 };
 
@@ -21,7 +21,7 @@ struct MicroEnum {
   int32_t value;
   const int32_t count;
   const char **labels;
-  void set(int32_t v) { value = Micro::modulo(v, count); }
+  void set(int32_t v) { value = microModulo(v, count); }
   int32_t get() const { return value;};
 };
 

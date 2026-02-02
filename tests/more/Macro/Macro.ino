@@ -32,17 +32,17 @@
 
 #define PARAM_SET_INT(name, v) \
   do { \
-    (name) = Micro::clamp<uint32_t>((v), name##_MIN, name##_MAX); \
+    (name) = microClamp<uint32_t>((v), name##_MIN, name##_MAX); \
   } while (0)
 
 #define PARAM_SET_FLOAT(name, v) \
   do { \
-    (name) = Micro::clamp<float>((v), name##_MIN, name##_MAX); \
+    (name) = microClamp<float>((v), name##_MIN, name##_MAX); \
   } while (0)
 
 #define PARAM_SET_ENUM(name, v) \
   do { \
-    (name) = Micro::modulo((v), name##_COUNT); \
+    (name) = microModulo((v), name##_COUNT); \
   } while (0)
 
 

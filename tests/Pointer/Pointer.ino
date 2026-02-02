@@ -32,7 +32,7 @@ public:
 
   static void setInt_Int(MicroValueNB *v, int32_t i)
   {
-    v->value_.i = Micro::clamp<int32_t>(i, v->meta_.i.min, v->meta_.i.max);
+    v->value_.i = microClamp<int32_t>(i, v->meta_.i.min, v->meta_.i.max);
   }
 
   static int32_t getInt_Int(const MicroValueNB *v)
@@ -54,7 +54,7 @@ public:
 
   static void setFloat_Float(MicroValueNB *v, float f)
   {
-    v->value_.f = Micro::clamp<float>(f, v->meta_.f.min, v->meta_.f.max);
+    v->value_.f = microClamp<float>(f, v->meta_.f.min, v->meta_.f.max);
   }
 
   static float getFloat_Float(const MicroValueNB *v)
@@ -76,7 +76,7 @@ public:
 
   static void setInt_Enum(MicroValueNB *v, int32_t i)
   {
-    v->value_.i = Micro::modulo(i, v->meta_.e.count);
+    v->value_.i = microModulo(i, v->meta_.e.count);
   }
 
   static int32_t getInt_Enum(const MicroValueNB *v)

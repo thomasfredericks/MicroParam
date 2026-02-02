@@ -69,22 +69,22 @@ uint32_t benchDirectUse() {
 
   for (int i = 0; i < ITERATIONS; ++i) {
     float f = i;
-    vInt[0] = Micro::clamp<uint32_t>(i,vIntMin[0],vIntMax[0]);
+    vInt[0] = microClamp<uint32_t>(i,vIntMin[0],vIntMax[0]);
     sink_i = vInt[0];
 
-    vInt[1] = Micro::clamp<uint32_t>(i,vIntMin[1],vIntMax[1]);
+    vInt[1] = microClamp<uint32_t>(i,vIntMin[1],vIntMax[1]);
     sink_i = vInt[1];
 
-    vFloat[0] = Micro::clamp<float>(i,vFloatMin[0],vFloatMax[0]);
+    vFloat[0] = microClamp<float>(i,vFloatMin[0],vFloatMax[0]);
     sink_f = vFloat[0];
 
-    vFloat[1] = Micro::clamp<float>(i,vFloatMin[1],vFloatMax[1]);
+    vFloat[1] = microClamp<float>(i,vFloatMin[1],vFloatMax[1]);
     sink_f = vFloat[1];
 
-    vEnum[0] =  Micro::modulo(i, vEnumCount[0]);
+    vEnum[0] =  microModulo(i, vEnumCount[0]);
     sink_i = vEnum[0];
 
-    vEnum[1] = Micro::modulo(i, vEnumCount[1]);
+    vEnum[1] = microModulo(i, vEnumCount[1]);
     sink_i = vEnum[1];
   
   }
