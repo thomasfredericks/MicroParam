@@ -7,6 +7,57 @@
 
 
 // ======================= Base types =======================
+struct MicroParamByte {
+    uint8_t value_;
+    const uint8_t min_, max_;
+
+    constexpr MicroParamByte(uint8_t v, uint8_t min=0, uint8_t max=255)
+        : value_(v), min_(min), max_(max)
+    {
+        value_ = (v < min_) ? min_ : ((v > max_) ? max_ : v);
+    }
+
+    // Assignment
+    MicroParamByte& operator=(uint8_t v) {
+        value_ = (v < min_) ? min_ : ((v > max_) ? max_ : v);
+        return *this;
+    }
+
+    // Conversion
+    operator uint8_t() const { return value_; }
+
+    // Explicit API
+    void set(uint8_t v) { *this = v; }
+    uint8_t get() const { return value_; }
+
+    // Prefix increment: ++x
+    MicroParamByte& operator++() {
+        if (value_ < max_) value_++;
+        return *this;
+    }
+
+    // Postfix increment: x++
+    MicroParamByte operator++(int) {
+        MicroParamByte temp = *this;
+        ++(*this);
+        return temp;
+    }
+
+    // Prefix decrement: --x
+    MicroParamByte& operator--() {
+        if (value_ > min_) value_--;
+        return *this;
+    }
+
+    // Postfix decrement: x--
+    MicroParamByte operator--(int) {
+        MicroParamByte temp = *this;
+        --(*this);
+        return temp;
+    }
+};
+
+
 struct MicroParamInt {
   int32_t value_;
   const int32_t min_, max_;
