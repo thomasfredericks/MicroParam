@@ -24,18 +24,18 @@ MicroParamInt input_a(2, 0, 127);
 MicroParamInt input_b(400, 1, 2000);
 
 
-MicroParamBind inputs[] = {
+MicroParamBindKey inputs[] = {
     {"/input/a", input_a},
     {"/input/b", input_b}
 };
-size_t inputsCount = sizeof(inputs) / sizeof(MicroParamBind);
+size_t inputsCount = sizeof(inputs) / sizeof(MicroParamBindKey);
 
 MicroParamInt output_value(127, 0, 255);
 
-MicroParamBind outputs[] = {
+MicroParamBindKey outputs[] = {
     {"/output/value", output_value},
 };
-size_t outputsCount = sizeof(outputs) / sizeof(MicroParamBind);
+size_t outputsCount = sizeof(outputs) / sizeof(MicroParamBindKey);
 
 
 // FUNCTION THAT WILL BE CALLED WHEN AN OSC MESSAGE IS RECEIVED:
