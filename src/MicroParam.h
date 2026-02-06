@@ -19,284 +19,297 @@ namespace MicroParam
 }
 
 // ======================= Base types =======================
-struct MicroParamByte
+class MicroParam 
 {
-  uint8_t value_;
-  const uint8_t min_, max_;
 
-  MicroParamByte(uint8_t v, uint8_t min = 0, uint8_t max = 255)
-      : value_(v), min_(min), max_(max)
+protected:
+  char type_;
+
+public:
+  MicroParam(char type) : type_(type)
   {
-    value_ = (v < min_) ? min_ : ((v > max_) ? max_ : v);
   }
 
-  // Assignment
-  MicroParamByte &operator=(uint8_t v)
+  char getType()
   {
-    value_ = (v < min_) ? min_ : ((v > max_) ? max_ : v);
-    return *this;
+    return type_;
   }
+  virtual void setInt(int32_t v) = 0;
+  virtual int32_t getInt() const = 0;
 
-  // Conversion
-  operator uint8_t() const { return value_; }
+  virtual void setFloat(float v) = 0;
+  virtual float getFloat() const = 0;
 
-  // Explicit API
-  void set(uint8_t v) { *this = v; }
-  uint8_t get() const { return value_; }
-
-  // Prefix increment: ++x
-  MicroParamByte &operator++()
-  {
-    if (value_ < max_)
-      value_++;
-    return *this;
-  }
-
-  // Postfix increment: x++
-  MicroParamByte operator++(int)
-  {
-    MicroParamByte temp = *this;
-    ++(*this);
-    return temp;
-  }
-
-  // Prefix decrement: --x
-  MicroParamByte &operator--()
-  {
-    if (value_ > min_)
-      value_--;
-    return *this;
-  }
-
-  // Postfix decrement: x--
-  MicroParamByte operator--(int)
-  {
-    MicroParamByte temp = *this;
-    --(*this);
-    return temp;
-  }
+  virtual void mapFloat(float in, float inMin, float inMax) = 0;
+  virtual void mapInt(int32_t in, int32_t inMin, int32_t inMax) = 0;
 };
 
-struct MicroParamInt
+class MicroParamByte : public MicroParam
 {
-  int32_t value_;
-  const int32_t min_, max_;
+private:
+    uint8_t value_;
+    const uint8_t min_;
+    const uint8_t max_;
 
-  // Constructor
-  MicroParamInt(int32_t v, int32_t min, int32_t max)
-      : min_(min), max_(max)
-  {
-    value_ = microClamp<int32_t>(value_, min_, max_);
-  }
+public:
+    MicroParamByte(uint8_t v, uint8_t min = 0, uint8_t max = 255)
+        : MicroParam('b'), value_(v), min_(min), max_(max)
+    {
+        if (value_ < min_) value_ = min_;
+        if (value_ > max_) value_ = max_;
+    }
 
-  // Assignment from raw value → calls set()
-  MicroParamInt &operator=(int32_t v)
-  {
-    value_ = microClamp<int32_t>(v, min_, max_);
-    return *this;
-  }
+    // Assignment operators
+    MicroParamByte &operator=(uint8_t v)
+    {
+        value_ = (v < min_) ? min_ : ((v > max_) ? max_ : v);
+        return *this;
+    }
 
-  // Conversion
-  operator int32_t() const
-  {
-    return value_;
-  }
+    MicroParamByte &operator=(int v)
+    {
+        return *this = (uint8_t)v;
+    }
 
-  // Explicit API
-  void set(int32_t v) { value_ = microClamp<int32_t>(v, min_, max_); }
-  int32_t get() const { return value_; }
+    // Implicit conversion
+    operator uint8_t() const { return value_; }
 
-  // Prefix increment: ++x
-  MicroParamInt &operator++()
-  {
-    set(value_ + 1);
-    return *this;
-  }
+    // Prefix increment / decrement
+    MicroParamByte &operator++()
+    {
+        if (value_ < max_) value_++;
+        return *this;
+    }
 
-  // Postfix increment: x++
-  MicroParamInt operator++(int)
-  {
-    MicroParamInt temp = *this;
-    set(value_ + 1);
-    return temp;
-  }
+    MicroParamByte operator++(int)
+    {
+        MicroParamByte temp = *this;
+        ++(*this);
+        return temp;
+    }
 
-  // Prefix decrement: --x
-  MicroParamInt &operator--()
-  {
-    set(value_ - 1);
-    return *this;
-  }
+    MicroParamByte &operator--()
+    {
+        if (value_ > min_) value_--;
+        return *this;
+    }
 
-  // Postfix decrement: x--
-  MicroParamInt operator--(int)
-  {
-    MicroParamInt temp = *this;
-    set(value_ - 1);
-    return temp;
-  }
+    MicroParamByte operator--(int)
+    {
+        MicroParamByte temp = *this;
+        --(*this);
+        return temp;
+    }
+
+    // Explicit API
+    void set(uint8_t v) { *this = v; }
+    uint8_t get() const { return value_; }
 };
 
-struct MicroParamFloat
+
+class MicroParamInt  : public MicroParam
 {
-  float value_;
-  const float min_, max_;
+private:
+    int32_t value_;
+    const int32_t min_;
+    const int32_t max_;
 
-  MicroParamFloat(float v, float min, float max)
-      : value_(v), min_(min), max_(max)
-  {
-    value_ = microClamp<float>(value_, min_, max_);
-  }
+public:
+    // Assignment operators
+    MicroParamInt& operator=(int32_t v) { value_ = microClamp<int32_t>(v, min_, max_); return *this; }
+    MicroParamInt& operator=(int v)       { value_ = microClamp<int32_t>((int32_t)v, min_, max_); return *this; }
+    MicroParamInt& operator=(float v)     { value_ = microClamp<int32_t>((int32_t)floor(v), min_, max_); return *this; }
+    MicroParamInt& operator=(const MicroParamInt& other) { value_ = other.value_; return *this; }
 
-  MicroParamFloat &operator=(float v)
-  {
-    value_ = microClamp<float>(v, min_, max_);
-    return *this;
-  }
+    // Implicit conversion
+    operator int32_t() const { return value_; }
+    operator float() const { return (float)value_; }
 
-  operator float() const
-  {
-    return value_;
-  }
+    // Virtual API (still works if needed)
+    void setInt(int32_t i) override { value_ = microClamp<int32_t>(i, min_, max_); }
+    int32_t getInt() const override { return value_; }
 
-  void set(float v)
-  {
-    value_ = microClamp<float>(v, min_, max_);
-  }
+    void setFloat(float f) override { value_ = microClamp<int32_t>((int32_t)floor(f), min_, max_); }
+    float getFloat() const override { return (float)value_; }
 
-  float get() const
-  {
-    return value_;
-  }
+    void mapFloat(float in, float inMin, float inMax) override
+    {
+        value_ = microClamp<int32_t>((int32_t)floor(microMap<float>(in, inMin, inMax, min_, max_)), min_, max_);
+    }
+
+    void mapInt(int32_t in, int32_t inMin, int32_t inMax) override
+    {
+        value_ = microClamp<int32_t>(microMap<int32_t>(in, inMin, inMax, min_, max_), min_, max_);
+    }
+
+    MicroParamInt(int32_t initial, int32_t min, int32_t max)
+        : MicroParam('i'), min_(min), max_(max)
+    {
+        value_ = microClamp<int32_t>(initial, min_, max_);
+    }
 };
 
-struct MicroParamEnum
+class MicroParamFloat  : public MicroParam
 {
-  int32_t value_;
-  const int32_t count_;
-  const char **labels_;
+private:
+    float value_;
+    const float min_;
+    const float max_;
 
-  // Constructor
-  MicroParamEnum(int32_t v, int32_t count_, const char **labels_)
-      : count_(count_), labels_(labels_)
-  {
-    value_ = microModulo(value_, count_);
-  }
+public:
+    // Assignment operators
+    MicroParamFloat& operator=(float v)     { value_ = microClamp<float>(v, min_, max_); return *this; }
+    MicroParamFloat& operator=(int32_t v)   { value_ = microClamp<float>((float)v, min_, max_); return *this; }
+    MicroParamFloat& operator=(int v)       { value_ = microClamp<float>((float)v, min_, max_); return *this; }
+    MicroParamFloat& operator=(const MicroParamFloat& other) { value_ = other.value_; return *this; }
 
-  // Assignment operator → sets the value with modulo
-  MicroParamEnum &operator=(int32_t v)
-  {
-    value_ = microModulo(v, count_);
-    return *this;
-  }
+    // Implicit conversion
+    operator float() const { return value_; }
+   operator int32_t() const { return (int32_t)floor(value_); }
 
-  // Explicit set method
-  void set(int32_t v)
-  {
-    value_ = microModulo(v, count_);
-  }
+    // Virtual API
+    void setFloat(float f) override { value_ = microClamp<float>(f, min_, max_); }
+    float getFloat() const override { return value_; }
 
-  // Explicit get method
-  int32_t get() const
-  {
-    return value_;
-  }
+    void setInt(int32_t i) override { value_ = microClamp<float>((float)i, min_, max_); }
+    int32_t getInt() const override { return (int32_t)floor(value_); }
 
-  // Implicit conversion to int32_t
-  operator int32_t() const
-  {
-    return value_;
-  }
+    void mapFloat(float in, float inMin, float inMax) override
+    {
+        value_ = microClamp<float>(microMap<float>(in, inMin, inMax, min_, max_), min_, max_);
+    }
 
-  // Get the label string
-  const char *label() const
-  {
-    return labels_ ? labels_[value_] : nullptr;
-  }
+    void mapInt(int32_t in, int32_t inMin, int32_t inMax) override
+    {
+        value_ = microClamp<float>((float)microMap<int32_t>(in, inMin, inMax, (int32_t)min_, (int32_t)max_), min_, max_);
+    }
+
+    MicroParamFloat(float initial, float min, float max)
+        : MicroParam('f'), min_(min), max_(max)
+    {
+        value_ = microClamp<float>(initial, min_, max_);
+    }
+};
+class MicroParamEnum  : public MicroParam
+{
+private:
+    int32_t value_;
+    const char **labels_;
+    int32_t count_;
+
+public:
+    // Assignment operators
+    MicroParamEnum& operator=(int32_t v) { value_ = microModulo(v, count_); return *this; }
+  MicroParamEnum& operator=(int v)     { value_ = microModulo((int32_t)v, count_); return *this; }
+  MicroParamEnum& operator=(float v)   { value_ = microModulo((int32_t)floor(v), count_); return *this; }
+   MicroParamEnum& operator=(const MicroParamEnum& other) { value_ = other.value_; return *this; }
+
+    // Implicit conversion
+    operator int32_t() const { return value_; }
+   operator float() const { return (float)value_; }
+
+    // Virtual API
+    void setInt(int32_t i) override { value_ = microModulo(i, count_); }
+    int32_t getInt() const override { return value_; }
+
+    void setFloat(float f) override { value_ = microModulo((int32_t)floor(f), count_); }
+    float getFloat() const override { return (float)value_; }
+
+    void mapFloat(float in, float inMin, float inMax) override
+    {
+        value_ = microModulo((int32_t)floor(microMap<float>(in, inMin, inMax, 0, count_-1)), count_);
+    }
+
+    void mapInt(int32_t in, int32_t inMin, int32_t inMaxExclusive) override
+    {
+        value_ = map(in, inMin, inMaxExclusive, 0, count_-1);
+    }
+
+    MicroParamEnum(const char **labels, int32_t value, int32_t count)
+        : MicroParam('e'), labels_(labels), count_(count)
+    {
+        value_ = microModulo(value, count_);
+    }
 };
 
-// COMPLEX TYPES
+// COMPLEX
 
-struct MicroParamBlob
+class MicroParamBlob : public MicroParam
 {
-  uint8_t *data_;
-  uint32_t capacity_;
-  uint32_t length_;
+private:
+    uint8_t *data_;
+    uint32_t capacity_;
+    uint32_t length_;
 
-  MicroParamBlob(uint8_t *buffer, uint32_t capacity, uint32_t length = 0)
-      : data_(buffer), capacity_(capacity), length_(length)
-  {
-  }
+public:
+    MicroParamBlob(uint8_t *buffer, uint32_t capacity, uint32_t length = 0)
+        : MicroParam('B'), data_(buffer), capacity_(capacity), length_(length) {}
 
+    const uint8_t *data() const { return data_; }
+    uint8_t *data() { return data_; }
+    uint32_t length() const { return length_; }
+    uint32_t capacity() const { return capacity_; }
 
-  const uint8_t *data() const { return data_; }
+    bool set(const uint8_t *buffer, uint32_t length)
+    {
+        if (length > capacity_) return false;
+        memcpy(data_, buffer, length);
+        length_ = length;
+        return true;
+    }
 
-  uint32_t length() const { return length_; }
-  uint32_t capacity() const { return capacity_; }
-
- bool set(const uint8_t* buffer, uint32_t length)
-{
-    if (length > capacity_)
-        return false;
-
-    memcpy(data_, buffer, length);
-    length_ = length;
-
-    return true;
-}
-
-
-  // ---- array operators ----
-  uint8_t &operator[](uint32_t index)
-  {
-    return data_[index];
-  }
-
-  const uint8_t &operator[](uint32_t index) const
-  {
-    return data_[index];
-  }
+    // Array operator
+    uint8_t &operator[](uint32_t index) { return data_[index]; }
+    const uint8_t &operator[](uint32_t index) const { return data_[index]; }
 };
 
-struct MicroParamString
+class MicroParamString : public MicroParam
 {
-  char *data_;
-  uint32_t capacity_;
-  uint32_t length_;
+private:
+    char *data_;
+    uint32_t capacity_;
+    uint32_t length_;
 
-  MicroParamString(char *buffer, uint32_t capacity)
-      : data_(buffer), capacity_(capacity), length_(0)
-  {
-    if (capacity_ == 0 || data_ == nullptr)
-      return;
+public:
+    MicroParamString(char *buffer, uint32_t capacity)
+        : MicroParam('s'), data_(buffer), capacity_(capacity), length_(0)
+    {
+        if (capacity_ == 0 || data_ == nullptr) return;
+        length_ = strnlen(data_, capacity_ - 1);
+        data_[length_] = '\0';
+    }
 
-    length_ = strnlen(data_, capacity_ - 1);
-    data_[length_] = '\0';
-  }
+    const char *get() const { return data_; }
+    char *data() { return data_; }
+    uint32_t length() const { return length_; }
+    uint32_t capacity() const { return capacity_; }
 
-  const char *get() const { return data_; }
+    bool set(const char *s)
+    {
+        if (!s || !data_ || capacity_ == 0) return false;
+        size_t new_len = strnlen(s, capacity_ - 1);
+        memcpy(data_, s, new_len);
+        data_[new_len] = '\0';
+        length_ = new_len;
+        return true;
+    }
 
-  uint32_t length() const { return length_; }
-  uint32_t capacity() const { return capacity_; }
+    // Assignment operator
+    MicroParamString &operator=(const char *s)
+    {
+        set(s);
+        return *this;
+    }
 
-  bool set(const char *s)
-  {
-    if (capacity_ == 0 || data_ == nullptr || s == nullptr)
-      return false;
+    MicroParamString &operator=(const MicroParamString &other)
+    {
+        set(other.data_);
+        return *this;
+    }
 
-    size_t new_len = strnlen(s, capacity_ - 1);
-    if (new_len >= capacity_)
-      return false;
-
-    memcpy(data_, s, new_len);
-    data_[new_len] = '\0';
-    length_ = new_len;
-    return true;
-  }
-
-  char *data() { return data_; }
+    // Implicit conversion to const char*
+    operator const char*() const { return data_; }
 };
-
 
 
 #endif // __MICRO_PARAM_H__
