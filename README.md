@@ -81,6 +81,7 @@ To determine the ideal architecture, five models were tested:
 - **`Pointer`**: A generic class uses custom function pointers for each data type. All parameters share a common interface.
 - **`Unique`**: Unique classes are defined for each data type. A common interface is only accessed when binding.
 - **`Overload`**: A variation of `Unique` with overloads for the `=` operator.
+- **`VirtualOverload`**: A variation of `Virtual` with overloads for the `=` and conversion operators of the derived class (not the base class).
 
 Two types of tests were conducted:
 - The **internal test** involved reading and changing the value of a parameter by accessing it directly.
@@ -111,15 +112,20 @@ The test code can be found in the `tests` folder.
 
 ### Results
 
-| Model     | External (M Cycles) | Internal (M Cycles) | Heap left |
-|----------|---------------------|---------------------|-----------|
-| Direct   | N/A                 | 9.435226            | 336408    |
-| Overload | 37.338829           | 14.854615           | 336280    |
-| Unique   | 49.98629            | 27.50039            | 336288    |
-| Virtual  | 89.348789           | 36.339528           | 336288    |
-| Pointer  | 107.20746           | 74.090209           | 336216    |
+**Real world** tests :
 
-Note that the previous **real world** tests differ from ChatGPT approximations that were the following :
+| Model           | External (M Cycles) | Internal (M Cycles) | Heap left |
+|-----------------|---------------------|---------------------|-----------|
+| Direct          | N/A                 | 9.435226            | 336408    |
+| Overload        | 37.338829           | 14.854615           | 336280    |
+| VirtualOverload | 83.314171           | 14.854669           | 336288    |
+| Unique          | 49.98629            | 27.50039            | 336288    |
+| Virtual         | 89.348789           | 36.339528           | 336288    |
+| Pointer         | 107.20746           | 74.090209           | 336216    |
+
+The **VirtualOverload** model was selected as it gives excellent internal speed and allows for the best balance between polymorphic flexibility and overall performance, without a meaningful increase in memory usage.
+
+Note that the previous **real world** tests differ from **ChatGPT approximations** that were the following :
 
 | Model | Relative Speed | Approx. Cost vs Direct | Notes |
 |---------:|---------------:|-----------------------:|-------|
