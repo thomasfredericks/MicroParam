@@ -354,6 +354,11 @@ public:
     {
     }
 
+    static uint32_t generateHash(const char *k)
+    {
+        return microHashFnv1a(k);
+    }
+
     const char *getKey() const
     {
         return key_;

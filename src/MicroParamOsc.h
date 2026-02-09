@@ -7,7 +7,7 @@
 bool microParamOscDispatch(MicroOscMessage &message, MicroParamBindKey *bindings, size_t bindingsCount)
 {
     const char *addr = message.getOscAddress();
-    const uint32_t addrHash = microHashFnv1a(addr);
+    const uint32_t addrHash = MicroParamBindKey::generateHash(addr);
 
     for (size_t i = 0; i < bindingsCount; i++)
     {
