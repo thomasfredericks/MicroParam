@@ -36,6 +36,8 @@ public:
 
     virtual void setFloat(float v) = 0;
     virtual float getFloat() const = 0;
+    virtual void setString(const char *s) {};
+    virtual const char *getString() const { return nullptr; };
 
     virtual void mapFloat(float in, float inMin, float inMax) = 0;
     virtual void mapInt(int32_t in, int32_t inMin, int32_t inMax) = 0;
@@ -75,10 +77,9 @@ public:
     // Implicit conversion
     operator uint8_t() const { return value_; }
 
-   
     // Explicit API
-   // void set(uint8_t v) { *this = v; }
-   // uint8_t get() const { return value_; }
+    // void set(uint8_t v) { *this = v; }
+    // uint8_t get() const { return value_; }
 };
 
 class MicroParamInt : public MicroParam
@@ -132,6 +133,7 @@ public:
         value_ = microClamp<int32_t>(microMap<int32_t>(in, inMin, inMax, min_, max_), min_, max_);
     }
 
+    // -------- Constructor ----------
     MicroParamInt(int32_t initial, int32_t min, int32_t max)
         : MicroParam(MicroParam::Type::INT), min_(min), max_(max)
     {
@@ -250,6 +252,23 @@ public:
         value_ = map(in, inMin, inMaxExclusive, 0, count_ - 1);
     }
 
+    void setString(const char *s) override
+    {
+        for (int32_t i = 0; i < count_; ++i)
+        {
+            if (strcmp(s, labels_[i]) == 0)
+            {
+                value_ = i;
+                return;
+            }
+        }
+    }
+
+    const char *getString() const override
+    {
+        return labels_[value_];
+    }
+
     MicroParamEnum(const char **labels, int32_t value, int32_t count)
         : MicroParam(MicroParam::Type::ENUM), labels_(labels), count_(count)
     {
@@ -270,7 +289,7 @@ public:
     MicroParamBlob(uint8_t *buffer, uint32_t capacity, uint32_t length = 0)
         : MicroParam(MicroParam::Type::BLOB), data_(buffer), capacity_(capacity), length_(length) {}
 
-    //const uint8_t *data() const { return data_; }
+    // const uint8_t *data() const { return data_; }
     uint8_t *get() const { return data_; }
     uint32_t getLength() const { return length_; }
     uint32_t getCapacity() const { return capacity_; }
@@ -306,15 +325,16 @@ public:
         data_[length_] = '\0';
     }
 
-    //const char *get() const { return data_; }
-   char * get() const { return data_; }
+    // const char *get() const { return data_; }
+    char *get() const { return data_; }
     uint32_t getLength() const { return length_; }
     uint32_t getCapacity() const { return capacity_; }
 
     bool set(const char *s)
     {
         size_t lengthNew = strlen(s);
-        if ( lengthNew >= capacity_-1 ) return false;
+        if (lengthNew >= capacity_ - 1)
+            return false;
         length_ = lengthNew;
         memcpy(data_, s, length_);
         data_[length_] = '\0';
@@ -334,57 +354,14 @@ public:
         return *this;
     }
 
+    void setString(const char *s) override { set(s); }
+    const char *getString() const override
+    {
+        return data_;
+    }
+
     // Implicit conversion to const char*
     operator const char *() const { return data_; }
-};
-
-// ======================= MicroParamBindKey =======================
-
-class MicroParamBindKey
-{
-private:
-    const char *key_;
-    const uint32_t keyHash_;
-    MicroParam &param_;
-
-public:
-    // --------- Constructors ---------
-    MicroParamBindKey(const char *k, MicroParam &param)
-        : key_(k), keyHash_(microHashFnv1a(k)), param_(param)
-    {
-    }
-
-    static uint32_t generateHash(const char *k)
-    {
-        return microHashFnv1a(k);
-    }
-
-    const char *getKey() const
-    {
-        return key_;
-    }
-
-    bool matches(const char *k) const
-    {
-        return strcmp(key_, k) == 0;
-    }
-
-    bool matches(uint32_t hash) const
-    {
-        return keyHash_ == hash;
-    }
-
-    bool matches(uint32_t hash, const char *addr) const
-    {
-        if (hash != keyHash_)
-            return false;
-        return strcmp(key_, addr) == 0;
-    }
-
-    MicroParam &  getParam()
-    {
-        return param_;
-    }
 };
 
 #endif // __MICRO_PARAM_H__
