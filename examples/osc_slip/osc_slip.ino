@@ -75,7 +75,5 @@ void loop()
 
         microParamOscSend(myOsc, outputs, outputsCount);
 
-        
-
     }
 }
