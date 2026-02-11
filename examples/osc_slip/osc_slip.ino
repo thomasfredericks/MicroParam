@@ -8,8 +8,6 @@
 */
 
 
-
-
 #include <Arduino.h>
 #include <MicroParam.h>
 #include <MicroParamOsc.h>
@@ -31,7 +29,7 @@ MicroParam* twoInts[] = { &int0, &int1 };
 MicroParamBindOsc inputs[] = {
     {"/input/a", "i", input_a},
     {"/input/b", "i", input_b},
-    {"/input/twoInts", "ii", twoInts},
+    {"/twoInts", "ii", twoInts},
 };
 const size_t inputsCount = sizeof(inputs) / sizeof(MicroParamBindOsc);
 
@@ -39,6 +37,7 @@ MicroParamInt output_value(127, 0, 255);
 
 MicroParamBindOsc outputs[] = {
     {"/output/value", "i", output_value},
+    {"/twoInts", "ii", twoInts},
 };
 const size_t outputsCount = sizeof(outputs) / sizeof(MicroParamBindOsc);
 
@@ -72,13 +71,15 @@ void loop()
 
     myOsc.onOscMessageReceived(myOscMessageParser);
 
-    if (millis() - chrono >= 1000)
+    if (millis() - chrono >= 500)
     {
         chrono = millis();
 
-        output_value = random(0, 256);
+        output_value = (int32_t) random(256);
 
         microParamOscSend(myOsc, outputs, outputsCount);
+
+        myOsc.sendInt("/a0", analogRead(A0));
 
     }
 }
