@@ -38,15 +38,14 @@ public:
     // -------- Array of params ----------
     MicroParamBindOsc(const char *address,
                       const char *typeTags,
-                      MicroParam **paramArray,
-                      size_t arraySize)
+                      MicroParam **paramArray)
         : address_(address),
           addressHash_(generateHash(address)),
           typeTags_(typeTags),
           typeTagsHash_(generateHash(typeTags)),
-          params_(paramArray),
-          count_(arraySize)
+          params_(paramArray)
     {
+        count_ = strlen(typeTags);
     }
 
     // -------- Accessors ----------
@@ -71,15 +70,12 @@ public:
     bool matchesTypeTags(const char *tags) const { return (strcmp(typeTags_, tags) == 0); }
 };
 
-
-
 // ======================= MicroParam OSC Utilities =======================
-
 
 bool microParamOscDispatch(MicroOscMessage &message, MicroParamBindOsc *bindings, size_t bindingsCount)
 {
-     const char *address = message.getOscAddress();
-     
+    const char *address = message.getOscAddress();
+
     const uint32_t addrHash = MicroParamBindOsc::generateHash(address);
     const char *typeTags = message.getTypeTags();
     const uint32_t typeHash = MicroParamBindOsc::generateHash(typeTags);
@@ -125,33 +121,31 @@ void microParamOscSend(MicroOsc &osc, MicroParamBindOsc &binding)
     // Loop over params according to typetags
     for (size_t i = 0; i < count; ++i)
     {
-        char tag = tags[i];             // get the expected OSC typetag
+        char tag = tags[i]; // get the expected OSC typetag
         MicroParam &param = binding.getParam(i);
 
         switch (tag)
         {
-            case 'i':  // integer
-                osc.sendInt(address, param.getInt());
-                break;
+        case 'i': // integer
+            osc.sendInt(address, param.getInt());
+            break;
 
-            case 'f':  // float
-                osc.sendFloat(address, param.getFloat());
-                break;
+        case 'f': // float
+            osc.sendFloat(address, param.getFloat());
+            break;
 
-            case 's':  // string
-            {
-                osc.sendString(address, param.getString());
-                break;
-            }
+        case 's': // string
+        {
+            osc.sendString(address, param.getString());
+            break;
+        }
 
-            default:
-                // unsupported type tag
-                break;
+        default:
+            // unsupported type tag
+            break;
         }
     }
 };
-
-
 
 void microParamOscSend(MicroOsc &osc, MicroParamBindOsc *bindings, size_t bindingsCount)
 {
