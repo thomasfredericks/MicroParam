@@ -117,26 +117,27 @@ void microParamOscSend(MicroOsc &osc, MicroParamBindOsc &binding)
     const char *address = binding.getAddress();
     size_t count = binding.getCount();
     const char *tags = binding.getTypeTags();
-
+    
+    osc.messageBegin(address, tags);
     // Loop over params according to typetags
     for (size_t i = 0; i < count; ++i)
     {
-        char tag = tags[i]; // get the expected OSC typetag
+        char tag = tags[i]; // get the target OSC typetag
         MicroParam &param = binding.getParam(i);
 
         switch (tag)
         {
         case 'i': // integer
-            osc.sendInt(address, param.getInt());
+            osc.messageAddInt(param.getInt());
             break;
 
         case 'f': // float
-            osc.sendFloat(address, param.getFloat());
+            osc.messageAddFloat(param.getFloat());
             break;
 
         case 's': // string
         {
-            osc.sendString(address, param.getString());
+            osc.messageAddString(param.getString());
             break;
         }
 
@@ -145,6 +146,7 @@ void microParamOscSend(MicroOsc &osc, MicroParamBindOsc &binding)
             break;
         }
     }
+    osc.messageEnd();
 };
 
 void microParamOscSend(MicroOsc &osc, MicroParamBindOsc *bindings, size_t bindingsCount)
