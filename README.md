@@ -20,56 +20,57 @@ Parameters should not carry string names internally for several reasons:
 
 Names should only be assigned **when binding parameters**, because that is the only time they are needed—for external interfaces, UI exposure, or network interaction. Internal operations must remain fast and lightweight, without the overhead of storing or searching names.
 
-## Structs and Classes
+## MicroParam types
 
-### `MicroParamInt`
+All `MicroParam` inherit the base class `MicroPram`
 
-| Member | Description | Returns |
-|--------|-------------|---------|
-| Constructor `MicroParamInt(v, min_, max_)` | Initializes a `MicroParamInt` with a value clamped to `[min_, max_]`. `v` (`int32_t`) is the initial value, `min_` (`int32_t`) is the minimum, `max_` (`int32_t`) is the maximum. | — |
-| `set(v)` | Sets the value clamped to `[min, max]`. `v` (`int32_t`) is the new value. | — |
-| `get()` | Retrieves the current value. | Current value (`int32_t`) |
-| Assignment `= v` | Sets the value clamped to the range. `v` (`int32_t`) is the value to assign. | — |
-| Conversion `operator int32_t()` | Converts to raw integer value. | Current value (`int32_t`) |
-| Increment/decrement `++x, x++, --x, x--` | Modifies the value within the valid range. | — |
+| Type   | Constructor | Description |
+|--------|-------------|-------------|
+| `MicroParamByte` | `MicroParamByte(uint8_t v, uint8_t min, uint8_t max)` | Stores a `uint8_t` with an initial value `v` constrained between `min` and `max`. |
+| `MicroParamInt` | `MicroParamInt(int32_t initial, int32_t min, int32_t max)` | Stores a signed 32-bit integer with a `initial` value constrained between `min` and `max`. Supports integer and float assignment with automatic clamping. |
+| `MicroParamFloat` | `MicroParamFloat(float initial, float min, float max)` | Stores a floating point value with a `initial` value constrained between `min` and `max`. Supports assignment from integers and floats with automatic clamping. |
+| `MicroParamEnum` | `MicroParamEnum(const char **labels, int32_t value, int32_t count)` | Stores an enumerated value represented by an index into a list of string labels. Values wrap using modulo within the available label count. |
+| `MicroParamBlob` | `MicroParamBlob(uint8_t *buffer, uint32_t capacity, uint32_t length)` | Accesses `uint8_t` data from a user-provided buffer with a length limited by a maximum capacity. |
+| `MicroParamString` | `MicroParamString(char *buffer, uint32_t capacity)` | Accesses a null-terminated string from a user-provided buffer limited by fixed maximum capacity. |
 
+## Common methods to all MicroParam
 
-### `MicroParamFloat`
+| Method | Return type | Description | Supported by |
+|--------|-------------|-------------|-------------|
+| `getType()` | `MicroParam::Type` | Returns the parameter type. | All |
+| `setInt(int32_t v)` | `void` | Sets the parameter value from an integer. | int, float, enum | 
+| `getInt() const` | `int32_t` | Returns the parameter value as an integer. Conversion depends on the concrete parameter type. | int, float, enum | 
+| `setFloat(float v)` | `void` | Sets the parameter value from a float. Conversion and clamping depend on the concrete parameter type. | int, float, enum | 
+| `getFloat() const` | `float` | Returns the parameter value as a float. Conversion depends on the concrete parameter type. | int, float, enum | 
+| `setString(const char *s)` | `void` | Sets the parameter value from a string when supported. Default implementation does nothing. | enum, string | 
+| `getString() const` | `const char *` | Returns the parameter value as a string when supported. Default implementation returns `nullptr`. | enum, string | 
+| `mapFloat(float in, float inMin, float inMax)` | `void` | Maps a float input range to the parameter range and assigns the mapped value. | int, float, enum | 
+| `mapInt(int32_t in, int32_t inMin, int32_t inMax)` | `void` | Maps an integer input range to the parameter range and assigns the mapped value. | int, float, enum | 
 
-| Member | Description | Returns |
-|--------|-------------|---------|
-| Constructor `MicroParamFloat(v, min_, max_)` | Initializes a `MicroParamFloat` with a value clamped to `[min_, max_]`. `v` (`float`) is the initial value, `min_` (`float`) is the minimum, `max_` (`float`) is the maximum. | — |
-| `set(v)` | Sets the value clamped to `[min, max]`. `v` (`float`) is the new value. | — |
-| `get()` | Retrieves the current value. | Current value (`float`) |
-| Assignment `= v` | Sets the value clamped to the range. `v` (`float`) is the value to assign. | — |
-| Conversion `operator float()` | Converts to raw float value. | Current value (`float`) |
+## MicroParam fast methods
 
+> [!NOTE]  
+> These methods can only be accessed directly on the class and not on the parent `MicroParam` class.
 
+For `MicroParamByte`, `MicroParamInt`, `MicroParamFloat` and `MicroParamEnum`:
 
-### `MicroParamEnum`
+| Fast Method | Description |
+|-------------|-------------|
+| `=` | Assigns a value directly to the parameter with automatic conversion and clamping or wrapping depending on the type. Enables fast syntax such as `param = value;` or `value = param`. |
 
-| Member | Description | Returns |
-|--------|-------------|---------|
-| Constructor `MicroParamEnum(v, count_, labels_)` | Initializes an enum value wrapped modulo `count_`. `v` (`int32_t`) is the initial value, `count_` (`int32_t`) is the number of enum items, `labels_` (`const char **`) is the array of string labels. | — |
-| `set(v)` | Sets the value wrapped modulo `count`. `v` (`int32_t`) is the new value. | — |
-| `get()` | Retrieves the current enum value. | Current value (`int32_t`) |
-| `label()` | Gets the label string corresponding to the current value. | Label string (`const char *`) or `nullptr` if labels are null |
-| Assignment `= v` | Sets the value modulo `count`. `v` (`int32_t`) is the value to assign. | — |
-| Conversion `operator int32_t()` | Converts to raw integer value. | Current value (`int32_t`) |
+For `MicroParamBlob`:
 
+| Fast Method | Description |
+|-------------|-------------|
+| `[index]` | Direct indexed access to the internal buffer for reading or writing individual bytes. No bounds checking. |
 
-### `MicroParamBind`
+For `MicroParamString`:
 
-| Member | Description | Returns |
-|--------|-------------|---------|
-| Constructor `MicroParamBind(k, v)` | Creates a binding between a key and a variable of type `MicroParamInt`, `MicroParamFloat`, or `MicroParamEnum`. `k` (`const char *`) is the key string, `v` (`MicroParamInt &`, `MicroParamFloat &`, or `MicroParamEnum &`) is the variable to bind. | — |
-| `getType()` | Retrieves the type of the bound variable. | Type (`MicroParamBind::Type`) |
-| `getKey()` | Retrieves the key string. | Key (`const char *`) |
-| `checkKey(k)` | Checks if the key matches the provided string. `k` (`const char *`) is the key string to check. | True if keys match (`bool`) |
-| `setInt(v)` | Sets the value of the bound variable as an integer. `v` (`int32_t`) is the new value. | — |
-| `getInt()` | Retrieves the bound variable as an integer. | Value as integer (`int32_t`) |
-| `setFloat(v)` | Sets the value of the bound variable as a float. `v` (`float`) is the new value. | — |
-| `getFloat()` | Retrieves the bound variable as a float. | Value as float (`float`) |
+| Fast Method | Description |
+|-------------|-------------|
+| `set(cstring)` | Copies a C-string into the internal buffer up to capacity. |
+| `get()` | Returns a pointer to the internal null-terminated string buffer. |
+
 
 
 ## Tests

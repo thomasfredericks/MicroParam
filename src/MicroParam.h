@@ -5,7 +5,11 @@
 #include <Arduino.h>
 #include <MicroCommon.h>
 
-// ======================= Base class =======================
+// ======================= CORE =======================
+
+
+// ------------------ Base class ------------------ 
+
 class MicroParam
 {
 public:
@@ -43,7 +47,9 @@ public:
     virtual void mapInt(int32_t in, int32_t inMin, int32_t inMax) = 0;
 };
 
-// ======================= Simple types =======================
+// ======================= SIMPLE TYPES =======================
+
+// ------------------ MicroParamByte ------------------
 
 class MicroParamByte : public MicroParam
 {
@@ -53,7 +59,7 @@ private:
     const uint8_t max_;
 
 public:
-    MicroParamByte(uint8_t v, uint8_t min = 0, uint8_t max = 255)
+    MicroParamByte(uint8_t v, uint8_t min , uint8_t max)
         : MicroParam(MicroParam::Type::BYTE), value_(v), min_(min), max_(max)
     {
         if (value_ < min_)
@@ -81,6 +87,8 @@ public:
     // void set(uint8_t v) { *this = v; }
     // uint8_t get() const { return value_; }
 };
+
+// ------------------ MicroParamInt ------------------
 
 class MicroParamInt : public MicroParam
 {
@@ -141,6 +149,8 @@ public:
     }
 };
 
+// ------------------ MicroParamFloat ------------------
+
 class MicroParamFloat : public MicroParam
 {
 private:
@@ -199,7 +209,7 @@ public:
     }
 };
 
-// ---------------
+// ------------------ MicroParamEnum ------------------
 
 class MicroParamEnum : public MicroParam
 {
@@ -276,7 +286,9 @@ public:
     }
 };
 
-// ======================= Complex types =======================
+// ======================= COMPLEX TYPES =======================
+
+// ------------------ MicroParamBlob ------------------
 
 class MicroParamBlob : public MicroParam
 {
@@ -286,7 +298,7 @@ private:
     uint32_t length_;
 
 public:
-    MicroParamBlob(uint8_t *buffer, uint32_t capacity, uint32_t length = 0)
+    MicroParamBlob(uint8_t *buffer, uint32_t capacity, uint32_t length)
         : MicroParam(MicroParam::Type::BLOB), data_(buffer), capacity_(capacity), length_(length) {}
 
     // const uint8_t *data() const { return data_; }
@@ -307,6 +319,8 @@ public:
     uint8_t &operator[](uint32_t index) { return data_[index]; }
     const uint8_t &operator[](uint32_t index) const { return data_[index]; }
 };
+
+// ------------------ MicroParamString ------------------
 
 class MicroParamString : public MicroParam
 {
