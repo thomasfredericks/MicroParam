@@ -29,6 +29,9 @@
 #X obj 97 622 route input output;
 #X obj 183 658 route value;
 #X floatatom 233 694 5 0 0 0 - - - 0;
+#X msg 341 128 -1 1;
+#X msg 398 126 100 50;
+#X obj 326 157 oscformat -f ii twoInts;
 #X connect 0 0 7 0;
 #X connect 0 1 21 0;
 #X connect 1 0 0 0;
@@ -52,3 +55,6 @@
 #X connect 27 0 25 0;
 #X connect 27 1 28 0;
 #X connect 28 0 29 0;
+#X connect 30 0 32 0;
+#X connect 31 0 32 0;
+#X connect 32 0 13 0;

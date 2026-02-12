@@ -22,7 +22,7 @@ unsigned long chrono;
 MicroParamInt input_a(2, 0, 127);
 MicroParamInt input_b(400, 1, 2000);
 
-MicroParamInt int0(2, 0, 127);
+MicroParamInt int0(2, -127, 127);
 MicroParamInt int1(400, 1, 2000);
 MicroParam* twoInts[] = { &int0, &int1 };
 
@@ -75,7 +75,7 @@ void loop()
     {
         chrono = millis();
 
-        output_value = (int32_t) random(256);
+        output_value = (int32_t) random(0, 256);
 
         microParamOscSend(myOsc, outputs, outputsCount);
 
