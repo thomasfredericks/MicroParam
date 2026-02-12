@@ -1,4 +1,4 @@
-#N canvas 553 105 829 732 12;
+#N canvas 553 229 829 732 12;
 #X obj 95 398 comport;
 #X msg 233 241 devices;
 #X text 293 241 Lister les ports dans la fenêtre Pd;
