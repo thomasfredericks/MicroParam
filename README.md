@@ -20,6 +20,45 @@ Parameters should not carry string names internally for several reasons:
 
 Names should only be assigned **when binding parameters**, because that is the only time they are needed—for external interfaces, UI exposure, or network interaction. Internal operations must remain fast and lightweight, without the overhead of storing or searching names.
 
+## Basic example
+
+```cpp
+#include <MicroParam.h>
+MicroParamInt myParam(2, 0, 127); // MicroParamInt ( value, min, max ) where min and max are inclusive
+
+void setup() {
+}
+
+void loop() {
+  myParam = 10; // set the value while constraining it to min and max
+}
+```
+## Class example
+
+`MicroParam` was designed to be lighweight and to be made public inside classes.
+
+```cpp
+#include <MicroParam.h>
+
+class MyClass {
+  public:
+    MicroParamInt myParam(2, 0, 127); // MicroParamInt ( value, min, max ) where min and max are inclusive
+    void update() {
+      // Do something with myParam
+    }
+};
+
+MyClass myClass;
+
+void setup() {
+}
+
+void loop() {
+  myClass.myParam = 10; // set the value while constraining it to min and max
+  myClass.update();
+}
+```
+
 ## MicroParam types
 
 All `MicroParam` inherit the base class `MicroPram`
