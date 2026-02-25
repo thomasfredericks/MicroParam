@@ -7,8 +7,7 @@
 
 // ======================= CORE =======================
 
-
-// ------------------ Base class ------------------ 
+// ------------------ Base class ------------------
 
 class MicroParam
 {
@@ -35,16 +34,18 @@ public:
     {
         return type_;
     }
-    virtual void setInt(int32_t v) = 0;
-    virtual int32_t getInt() const = 0;
+    virtual void setInt(int32_t v) {};
+    virtual int32_t getInt() const { return 0; };
 
-    virtual void setFloat(float v) = 0;
-    virtual float getFloat() const = 0;
+    virtual void setFloat(float v) {};
+    virtual float getFloat() const { return 0.0f; };
+    virtual void mapFloat(float in, float inMin, float inMax) {};
+    virtual void mapInt(int32_t in, int32_t inMin, int32_t inMax) {};
+
     virtual void setString(const char *s) {};
     virtual const char *getString() const { return nullptr; };
-
-    virtual void mapFloat(float in, float inMin, float inMax) = 0;
-    virtual void mapInt(int32_t in, int32_t inMin, int32_t inMax) = 0;
+    virtual void setBlob(const uint8_t *data, size_t length) {};
+    virtual size_t getBlob(uint8_t **data) const { return 0; }
 };
 
 // ======================= SIMPLE TYPES =======================
@@ -59,7 +60,7 @@ private:
     const uint8_t max_;
 
 public:
-    MicroParamByte(uint8_t v, uint8_t min , uint8_t max)
+    MicroParamByte(uint8_t v, uint8_t min, uint8_t max)
         : MicroParam(MicroParam::Type::BYTE), value_(v), min_(min), max_(max)
     {
         if (value_ < min_)
@@ -294,19 +295,38 @@ class MicroParamBlob : public MicroParam
 {
 private:
     uint8_t *data_;
-    uint32_t capacity_;
-    uint32_t length_;
+    size_t capacity_;
+    size_t length_;
 
 public:
-    MicroParamBlob(uint8_t *buffer, uint32_t capacity, uint32_t length)
+    MicroParamBlob(uint8_t *buffer, size_t capacity, size_t length)
         : MicroParam(MicroParam::Type::BLOB), data_(buffer), capacity_(capacity), length_(length) {}
 
-    // const uint8_t *data() const { return data_; }
-    uint8_t *get() const { return data_; }
-    uint32_t getLength() const { return length_; }
-    uint32_t getCapacity() const { return capacity_; }
+    void setBlob(const uint8_t *data, size_t length) override
+    {
+        if (length > capacity_)
+            return;
+        memcpy(data_, data, length);
+        length_ = length;
+    }
 
-    bool set(const uint8_t *buffer, uint32_t length)
+    size_t getBlob(uint8_t **data) const override
+    {
+        *data = data_;
+        return length_;
+    }
+
+    // FAST METHODS
+
+    size_t get(uint8_t **blobData) const
+    {
+        *blobData = data_;
+        return length_;
+    }
+    // size_t getLength() const { return length_; }
+    // size_t getCapacity() const { return capacity_; }
+
+    bool set(const uint8_t *buffer, size_t length)
     {
         if (length > capacity_)
             return false;
@@ -316,8 +336,8 @@ public:
     }
 
     // Array operator
-    uint8_t &operator[](uint32_t index) { return data_[index]; }
-    const uint8_t &operator[](uint32_t index) const { return data_[index]; }
+    uint8_t &operator[](size_t index) { return data_[index]; }
+    const uint8_t &operator[](size_t index) const { return data_[index]; }
 };
 
 // ------------------ MicroParamString ------------------
@@ -325,33 +345,45 @@ public:
 class MicroParamString : public MicroParam
 {
 private:
-    char *data_;
-    uint32_t capacity_;
-    uint32_t length_;
+    char *str_;
+    const size_t capacity_;
+    size_t length_;
 
 public:
-    MicroParamString(char *buffer, uint32_t capacity)
-        : MicroParam(MicroParam::Type::STRING), data_(buffer), capacity_(capacity), length_(0)
+    MicroParamString(char *buffer, size_t capacity)
+        : MicroParam(MicroParam::Type::STRING), str_(buffer), capacity_(capacity)
     {
-        if (capacity_ == 0 || data_ == nullptr)
-            return;
-        length_ = strnlen(data_, capacity_ - 1);
-        data_[length_] = '\0';
+        // if (capacity_ == 0 || str_ == nullptr) return;
+        length_ = strnlen(str_, capacity_ - 1);
+        str_[capacity_ - 1] = '\0';
     }
 
-    // const char *get() const { return data_; }
-    char *get() const { return data_; }
-    uint32_t getLength() const { return length_; }
-    uint32_t getCapacity() const { return capacity_; }
+    void setString(const char *s) override { set(s); }
+    const char *getString() const override
+    {
+        return str_;
+    }
 
+    // FAST METHODS
+
+    // size_t getLength() const { return length_; }
+    // size_t getCapacity() const { return capacity_; }
+
+    const char *get() const { return str_; }
     bool set(const char *s)
     {
-        size_t lengthNew = strlen(s);
-        if (lengthNew >= capacity_ - 1)
+        size_t i = 0;
+        while (i < capacity_ - 1 && s[i] != '\0')
+        {
+            str_[i] = s[i];
+            ++i;
+        }
+
+        if (s[i] != '\0') // source string was too long
             return false;
-        length_ = lengthNew;
-        memcpy(data_, s, length_);
-        data_[length_] = '\0';
+
+        str_[i] = '\0';
+        length_ = i;
         return true;
     }
 
@@ -364,18 +396,12 @@ public:
 
     MicroParamString &operator=(const MicroParamString &other)
     {
-        set(other.data_);
+        set(other.get());
         return *this;
     }
 
-    void setString(const char *s) override { set(s); }
-    const char *getString() const override
-    {
-        return data_;
-    }
-
     // Implicit conversion to const char*
-    operator const char *() const { return data_; }
+    operator const char *() const { return str_; }
 };
 
 #endif // __MICRO_PARAM_H__
